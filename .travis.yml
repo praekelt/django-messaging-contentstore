@@ -4,7 +4,7 @@ services:
   - postgresql
 
 env:
-  - DJANGO="django==1.7"
+  - DJANGO="django==1.8"
 
 # command to install requirements
 install:
