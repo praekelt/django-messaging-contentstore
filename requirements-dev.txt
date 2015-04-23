@@ -1,0 +1,7 @@
+pytest
+pytest-cov
+pytest-django
+flake8
+requests_testadapter
+wheel
+twine

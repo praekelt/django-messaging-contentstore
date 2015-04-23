@@ -1,0 +1,17 @@
+language: python
+
+services:
+  - postgresql
+
+env:
+  - DJANGO="django==1.8"
+
+# command to install requirements
+install:
+  - pip install -r requirements.txt --use-mirrors
+  - pip install -r requirements-dev.txt --use-mirrors
+
+# command to run tests, e.g. python setup.py test
+script:
+  - "py.test --ds=testsettings contentstore/tests.py --cov=contentstore"
+  - "flake8 contentstore/"
