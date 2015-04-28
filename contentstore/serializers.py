@@ -1,4 +1,4 @@
-from .models import Schedule, MessageSet
+from .models import Schedule, MessageSet, Message
 
 from rest_framework import serializers
 
@@ -17,3 +17,11 @@ class MessageSetSerializer(serializers.ModelSerializer):
         model = MessageSet
         fields = ('id', 'short_name', 'notes', 'next_set', 'default_schedule',
                   'created_at', 'updated_at')
+
+
+class MessageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Message
+        fields = ('id', 'messageset', 'sequence_number', 'lang',
+                  'text_content', 'binary_content', 'created_at', 'updated_at')

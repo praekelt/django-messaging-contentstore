@@ -6,7 +6,7 @@ from rest_framework.test import APIClient
 from rest_framework.authtoken.models import Token
 
 
-from .models import Schedule, MessageSet
+from .models import Schedule, MessageSet, Message
 
 
 class APITestCase(TestCase):
@@ -44,6 +44,13 @@ class TestContentStore(AuthenticatedAPITestCase):
             short_name=short_name, next_set=next_set,
             default_schedule=default_schedule)
         return message_set
+
+    def make_message_text(self, messageset, sequence_number=1, lang="eng_GB",
+                          text_content="Testing 1 2 3"):
+        message, created = Message.objects.get_or_create(
+            messageset=messageset, sequence_number=sequence_number,
+            lang=lang, text_content=text_content)
+        return message
 
     def test_login(self):
         request = self.client.post(
@@ -181,4 +188,55 @@ class TestContentStore(AuthenticatedAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
         check = MessageSet.objects.filter(id=default_messageset_id).count()
+        self.assertEqual(check, 0)
+
+    def test_create_message_text(self):
+        schedule = self.make_schedule()
+        messageset = self.make_messageset(default_schedule=schedule,
+                                          short_name="Full Set")
+        post_data = {
+            "messageset": messageset.id,
+            "sequence_number": 2,
+            "lang": "afr_ZA",
+            "text_content": "Message two"
+        }
+        response = self.client.post('/message/',
+                                    json.dumps(post_data),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        d = Message.objects.last()
+        self.assertEqual(d.messageset, messageset)
+        self.assertEqual(d.sequence_number, 2)
+        self.assertEqual(d.lang, "afr_ZA")
+        self.assertEqual(d.text_content, "Message two")
+
+    def test_update_message_text(self):
+        schedule = self.make_schedule()
+        messageset = self.make_messageset(default_schedule=schedule,
+                                          short_name="Full Set")
+        message = self.make_message_text(messageset)
+        message_id = message.id
+        patch_data = {
+            "text_content": "Message one updated"
+        }
+        response = self.client.patch('/message/%s/' % message_id,
+                                     json.dumps(patch_data),
+                                     content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        d = Message.objects.get(pk=message_id)
+        self.assertEqual(d.text_content, "Message one updated")
+
+    def tests_delete_message_text(self):
+        schedule = self.make_schedule()
+        messageset = self.make_messageset(default_schedule=schedule,
+                                          short_name="Full Set")
+        message = self.make_message_text(messageset)
+        message_id = message.id
+        response = self.client.delete('/message/%s/' % message_id,
+                                      content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        check = Message.objects.filter(id=message_id).count()
         self.assertEqual(check, 0)

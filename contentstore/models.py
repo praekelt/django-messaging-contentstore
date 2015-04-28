@@ -1,5 +1,7 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+from datetime import datetime
 
 
 class Schedule(models.Model):
@@ -36,6 +38,7 @@ class Schedule(models.Model):
 
 
 class MessageSet(models.Model):
+
     """
         Details about a set of messages that a recipient can be sent on
         a particular schedule
@@ -53,3 +56,51 @@ class MessageSet(models.Model):
 
     def __unicode__(self):
         return "%s" % self.short_name
+
+
+def generate_new_filename(instance, filename):
+    ext = filename.split('.')[-1]  # get file extension
+    return "%s.%s" % (datetime.now().strftime("%Y%m%d%H%M%S%f"), ext)
+
+
+class BinaryContent(models.Model):
+    """
+        File store for reference in messages. Storage method handle by
+        settings file.
+    """
+
+    content = models.FileField(upload_to=generate_new_filename,
+                               max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        return "%s" % (self.content.path.split('/')[-1])
+
+
+class Message(models.Model):
+
+    """
+        Messages that a recipient can be sent
+    """
+    messageset = models.ForeignKey(MessageSet,
+                                   related_name='messages',
+                                   null=False)
+    sequence_number = models.IntegerField(null=False, blank=False)
+    lang = models.CharField(max_length=6, null=False, blank=False)
+    text_content = models.TextField(null=True, blank=True)
+    binary_content = models.ForeignKey(BinaryContent,
+                                       related_name='message',
+                                       null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def clean(self):
+        # Don't allow messages to have neither a text or binary content
+        if self.text_content is None and self.binary_content is None:
+            raise ValidationError(
+                _('Messages must have text or file attached'), code='invalid')
+
+    def __unicode__(self):
+        return _("Message %s in %s from %s") % (
+            self.sequence_number, self.lang, self.messageset.short_name)
