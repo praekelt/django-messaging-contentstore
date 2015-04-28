@@ -79,7 +79,7 @@ class TestContentStore(AuthenticatedAPITestCase):
     def tests_update_schedule(self):
         existing_schedule = self.make_schedule()
         existing_schedule_id = existing_schedule.id
-        post_data = {
+        patch_data = {
             "minute": "1",
             "hour": "2",
             "day_of_week": "3",
@@ -87,7 +87,7 @@ class TestContentStore(AuthenticatedAPITestCase):
             "month_of_year": "5",
         }
         response = self.client.put('/schedule/%s/' % existing_schedule_id,
-                                   json.dumps(post_data),
+                                   json.dumps(patch_data),
                                    content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
