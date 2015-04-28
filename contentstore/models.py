@@ -3,6 +3,12 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class Schedule(models.Model):
+
+    """
+    Schdules (sometimes referred to as Protocols) are the method used to
+    define the rate and frequency at which the messages are sent to
+    the recipient
+    """
     minute = models.CharField(_('minute'), max_length=64, default='*')
     hour = models.CharField(_('hour'), max_length=64, default='*')
     day_of_week = models.CharField(
