@@ -1,4 +1,4 @@
-from .models import Schedule, MessageSet, Message
+from .models import Schedule, MessageSet, Message, BinaryContent
 
 from rest_framework import serializers
 
@@ -25,3 +25,10 @@ class MessageSerializer(serializers.ModelSerializer):
         model = Message
         fields = ('id', 'messageset', 'sequence_number', 'lang',
                   'text_content', 'binary_content', 'created_at', 'updated_at')
+
+
+class BinaryContentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BinaryContent
+        fields = ('id', 'content')
