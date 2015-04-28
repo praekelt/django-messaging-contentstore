@@ -76,6 +76,28 @@ class TestContentStore(AuthenticatedAPITestCase):
         self.assertEqual(d.day_of_month, "4")
         self.assertEqual(d.month_of_year, "5")
 
+    def tests_update_schedule(self):
+        existing_schedule = self.make_schedule()
+        existing_schedule_id = existing_schedule.id
+        post_data = {
+            "minute": "1",
+            "hour": "2",
+            "day_of_week": "3",
+            "day_of_month": "4",
+            "month_of_year": "5",
+        }
+        response = self.client.put('/schedule/%s/' % existing_schedule_id,
+                                   json.dumps(post_data),
+                                   content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        d = Schedule.objects.get(pk=existing_schedule_id)
+        self.assertEqual(d.minute, "1")
+        self.assertEqual(d.hour, "2")
+        self.assertEqual(d.day_of_week, "3")
+        self.assertEqual(d.day_of_month, "4")
+        self.assertEqual(d.month_of_year, "5")
+
     def test_create_messageset(self):
         default_schedule = self.make_schedule()
         schedule_id = default_schedule.id
