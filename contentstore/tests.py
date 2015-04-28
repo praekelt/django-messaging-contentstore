@@ -98,6 +98,16 @@ class TestContentStore(AuthenticatedAPITestCase):
         self.assertEqual(d.day_of_month, "4")
         self.assertEqual(d.month_of_year, "5")
 
+    def tests_delete_schedule(self):
+        existing_schedule = self.make_schedule()
+        existing_schedule_id = existing_schedule.id
+        response = self.client.delete('/schedule/%s/' % existing_schedule_id,
+                                      content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        check = Schedule.objects.filter(id=existing_schedule_id).count()
+        self.assertEqual(check, 0)
+
     def test_create_messageset(self):
         default_schedule = self.make_schedule()
         schedule_id = default_schedule.id
