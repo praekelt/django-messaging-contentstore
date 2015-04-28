@@ -169,3 +169,16 @@ class TestContentStore(AuthenticatedAPITestCase):
         d = MessageSet.objects.get(pk=default_messageset_id)
         self.assertEqual(d.short_name, "Full Set")
         self.assertEqual(d.notes, "A full set of messages with more notes.")
+
+    def tests_delete_messageset(self):
+        schedule = self.make_schedule()
+        default_messageset = self.make_messageset(default_schedule=schedule,
+                                                  short_name="Full Set")
+        default_messageset_id = default_messageset.id
+        response = self.client.delete('/messageset/%s/' %
+                                      (default_messageset_id, ),
+                                      content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        check = MessageSet.objects.filter(id=default_messageset_id).count()
+        self.assertEqual(check, 0)
