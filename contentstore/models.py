@@ -7,7 +7,7 @@ from datetime import datetime
 class Schedule(models.Model):
 
     """
-    Schdules (sometimes referred to as Protocols) are the method used to
+    Schedules (sometimes referred to as Protocols) are the method used to
     define the rate and frequency at which the messages are sent to
     the recipient
     """
