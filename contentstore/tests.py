@@ -152,3 +152,20 @@ class TestContentStore(AuthenticatedAPITestCase):
                                     json.dumps(post_data),
                                     content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_messageset(self):
+        schedule = self.make_schedule()
+        default_messageset = self.make_messageset(default_schedule=schedule,
+                                                  short_name="Full Set")
+        default_messageset_id = default_messageset.id
+        patch_data = {
+            "notes": "A full set of messages with more notes."
+        }
+        response = self.client.patch('/messageset/%s/' % default_messageset_id,
+                                     json.dumps(patch_data),
+                                     content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        d = MessageSet.objects.get(pk=default_messageset_id)
+        self.assertEqual(d.short_name, "Full Set")
+        self.assertEqual(d.notes, "A full set of messages with more notes.")
