@@ -33,3 +33,23 @@ class Schedule(models.Model):
             rfield(self.minute), rfield(self.hour), rfield(self.day_of_week),
             rfield(self.day_of_month), rfield(self.month_of_year),
         )
+
+
+class MessageSet(models.Model):
+    """
+        Details about a set of messages that a recipient can be sent on
+        a particular schedule
+    """
+    short_name = models.CharField(_('Short name'), max_length=20, unique=True)
+    notes = models.TextField(_('Notes'), null=True, blank=True)
+    next_set = models.ForeignKey('self',
+                                 null=True,
+                                 blank=True)
+    default_schedule = models.ForeignKey(Schedule,
+                                         related_name='message_sets',
+                                         null=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        return "%s" % self.short_name
