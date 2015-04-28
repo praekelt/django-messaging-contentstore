@@ -15,7 +15,7 @@ setup(
     install_requires=[
         'Django==1.8',
         'djangorestframework',
-        'django-filters'
+        'django-filter'
     ],
     classifiers=[
         'Development Status :: 4 - Beta',
