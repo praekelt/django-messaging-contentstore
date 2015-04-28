@@ -29,7 +29,7 @@ class AuthenticatedAPITestCase(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
 
 
-class TestAnalytics(AuthenticatedAPITestCase):
+class TestContentStore(AuthenticatedAPITestCase):
 
     def test_login(self):
         request = self.client.post(
