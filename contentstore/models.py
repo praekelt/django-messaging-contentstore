@@ -1,5 +1,6 @@
 from django.db import models
-from django.core.exceptions import ValidationError
+# from django.core.exceptions import ValidationError
+from rest_framework.serializers import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from datetime import datetime
 
@@ -99,7 +100,11 @@ class Message(models.Model):
         # Don't allow messages to have neither a text or binary content
         if self.text_content is None and self.binary_content is None:
             raise ValidationError(
-                _('Messages must have text or file attached'), code='invalid')
+                _('Messages must have text or file attached'))
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super(Message, self).save(*args, **kwargs)
 
     def __unicode__(self):
         return _("Message %s in %s from %s") % (

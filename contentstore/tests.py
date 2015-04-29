@@ -283,3 +283,65 @@ class TestContentStore(AuthenticatedAPITestCase):
 
         check = BinaryContent.objects.filter(id=binarycontent_id).count()
         self.assertEqual(check, 0)
+
+    def test_create_message_binary(self):
+        schedule = self.make_schedule()
+        messageset = self.make_messageset(default_schedule=schedule,
+                                          short_name="Full Set")
+        binarycontent = self.make_binary_content()
+        binarycontent_id = binarycontent.id
+        post_data = {
+            "messageset": messageset.id,
+            "sequence_number": 2,
+            "lang": "afr_ZA",
+            "binary_content": binarycontent_id
+        }
+        response = self.client.post('/message/',
+                                    json.dumps(post_data),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        d = Message.objects.last()
+        self.assertEqual(d.messageset, messageset)
+        self.assertEqual(d.sequence_number, 2)
+        self.assertEqual(d.lang, "afr_ZA")
+        self.assertEqual(d.binary_content.content.name.split('.')[-1], 'png')
+
+    def test_create_message_binary_and_text(self):
+        schedule = self.make_schedule()
+        messageset = self.make_messageset(default_schedule=schedule,
+                                          short_name="Full Set")
+        binarycontent = self.make_binary_content()
+        binarycontent_id = binarycontent.id
+        post_data = {
+            "messageset": messageset.id,
+            "sequence_number": 2,
+            "lang": "afr_ZA",
+            "text_content": "Message two",
+            "binary_content": binarycontent_id
+        }
+        response = self.client.post('/message/',
+                                    json.dumps(post_data),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        d = Message.objects.last()
+        self.assertEqual(d.messageset, messageset)
+        self.assertEqual(d.sequence_number, 2)
+        self.assertEqual(d.lang, "afr_ZA")
+        self.assertEqual(d.binary_content.content.name.split('.')[-1], 'png')
+        self.assertEqual(d.text_content, "Message two")
+
+    def test_create_message_no_content_rejected(self):
+        schedule = self.make_schedule()
+        messageset = self.make_messageset(default_schedule=schedule,
+                                          short_name="Full Set")
+        post_data = {
+            "messageset": messageset.id,
+            "sequence_number": 2,
+            "lang": "afr_ZA"
+        }
+        response = self.client.post('/message/',
+                                    json.dumps(post_data),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
