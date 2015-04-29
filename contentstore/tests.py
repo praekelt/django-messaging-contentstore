@@ -7,7 +7,6 @@ from rest_framework.authtoken.models import Token
 from io import BytesIO
 
 from .models import Schedule, MessageSet, Message, BinaryContent
-from contentstore import models
 
 
 class APITestCase(TestCase):
@@ -52,6 +51,22 @@ class TestContentStore(AuthenticatedAPITestCase):
             messageset=messageset, sequence_number=sequence_number,
             lang=lang, text_content=text_content)
         return message
+
+    def make_binary_content(self):
+        # models.generate_new_filename = lambda *a: "20151201010101012345.png"
+        simple_png = BytesIO(
+            b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc````\x00\x00\x00\x05\x00\x01\xa5\xf6E@\x00\x00\x00\x00IEND\xaeB`\x82')   # flake8: noqa
+        simple_png.name = 'test.png'
+
+        post_data = {
+            "content": simple_png
+        }
+        self.client.post('/binarycontent/',
+                         post_data,
+                         format='multipart',
+                         )
+
+        return BinaryContent.objects.last()
 
     def test_login(self):
         request = self.client.post(
@@ -243,8 +258,8 @@ class TestContentStore(AuthenticatedAPITestCase):
         self.assertEqual(check, 0)
 
     def test_create_binary_content(self):
-        # models.generate_new_filename = lambda *a: "20151201010101012345.png"
-        simple_png = BytesIO(b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc````\x00\x00\x00\x05\x00\x01\xa5\xf6E@\x00\x00\x00\x00IEND\xaeB`\x82')   # flake8: noqa
+        simple_png = BytesIO(
+            b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc````\x00\x00\x00\x05\x00\x01\xa5\xf6E@\x00\x00\x00\x00IEND\xaeB`\x82')   # flake8: noqa
         simple_png.name = 'test.png'
 
         post_data = {
@@ -258,3 +273,13 @@ class TestContentStore(AuthenticatedAPITestCase):
 
         d = BinaryContent.objects.last()
         self.assertEqual(d.content.name.split('.')[-1], 'png')
+
+    def tests_delete_binary_content(self):
+        binarycontent = self.make_binary_content()
+        binarycontent_id = binarycontent.id
+        response = self.client.delete('/binarycontent/%s/' % binarycontent_id,
+                                      content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        check = BinaryContent.objects.filter(id=binarycontent_id).count()
+        self.assertEqual(check, 0)
