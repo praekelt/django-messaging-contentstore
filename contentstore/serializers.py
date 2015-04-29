@@ -19,6 +19,13 @@ class MessageSetSerializer(serializers.ModelSerializer):
                   'created_at', 'updated_at')
 
 
+class BinaryContentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BinaryContent
+        fields = ('id', 'content')
+
+
 class MessageSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -27,8 +34,15 @@ class MessageSerializer(serializers.ModelSerializer):
                   'text_content', 'binary_content', 'created_at', 'updated_at')
 
 
-class BinaryContentSerializer(serializers.ModelSerializer):
+class MessageListSerializer(serializers.ModelSerializer):
+
+    """
+        Only used for get views, because binary relational serializer is not
+        something that works nicely with posts
+    """
+    binary_content = BinaryContentSerializer(many=False, read_only=True)
 
     class Meta:
-        model = BinaryContent
-        fields = ('id', 'content')
+        model = Message
+        fields = ('id', 'messageset', 'sequence_number', 'lang',
+                  'text_content', 'binary_content', 'created_at', 'updated_at')

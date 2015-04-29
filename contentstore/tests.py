@@ -45,11 +45,12 @@ class TestContentStore(AuthenticatedAPITestCase):
             default_schedule=default_schedule)
         return message_set
 
-    def make_message_text(self, messageset, sequence_number=1, lang="eng_GB",
-                          text_content="Testing 1 2 3"):
+    def make_message(self, messageset, sequence_number=1, lang="eng_GB",
+                     text_content="Testing 1 2 3", binary_content=None):
         message, created = Message.objects.get_or_create(
             messageset=messageset, sequence_number=sequence_number,
-            lang=lang, text_content=text_content)
+            lang=lang, text_content=text_content,
+            binary_content=binary_content)
         return message
 
     def make_binary_content(self):
@@ -231,7 +232,7 @@ class TestContentStore(AuthenticatedAPITestCase):
         schedule = self.make_schedule()
         messageset = self.make_messageset(default_schedule=schedule,
                                           short_name="Full Set")
-        message = self.make_message_text(messageset)
+        message = self.make_message(messageset)
         message_id = message.id
         patch_data = {
             "text_content": "Message one updated"
@@ -248,7 +249,7 @@ class TestContentStore(AuthenticatedAPITestCase):
         schedule = self.make_schedule()
         messageset = self.make_messageset(default_schedule=schedule,
                                           short_name="Full Set")
-        message = self.make_message_text(messageset)
+        message = self.make_message(messageset)
         message_id = message.id
         response = self.client.delete('/message/%s/' % message_id,
                                       content_type='application/json')
@@ -345,3 +346,28 @@ class TestContentStore(AuthenticatedAPITestCase):
                                     json.dumps(post_data),
                                     content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_get_messageset_messages_binary_and_text(self):
+        schedule = self.make_schedule()
+        messageset = self.make_messageset(default_schedule=schedule,
+                                          short_name="Full Set")
+        binarycontent = self.make_binary_content()
+        message = self.make_message(messageset=messageset,
+                                    text_content="Message two",
+                                    binary_content=binarycontent)
+
+        response = self.client.get('/messageset/%s/messages' % messageset.id,
+                                   content_type='application/json')
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(len(content), 1)
+        self.assertEqual(content[0]["binary_content"]["id"], binarycontent.id)
+        self.assertEqual(content[0]["text_content"], message.text_content)
+        self.assertEqual(content[0]["lang"], message.lang)
+        self.assertEqual(content[0]["messageset"], messageset.id)
+        self.assertEqual(
+            content[0]["sequence_number"], message.sequence_number)
+        self.assertEqual("created_at" in content[0], True)
+        self.assertEqual("updated_at" in content[0], True)
+        self.assertEqual("id" in content[0], True)

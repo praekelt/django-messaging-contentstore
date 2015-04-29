@@ -1,8 +1,10 @@
 from .models import Schedule, MessageSet, Message, BinaryContent
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from .serializers import (ScheduleSerializer, MessageSetSerializer,
-                          MessageSerializer, BinaryContentSerializer)
+                          MessageSerializer, BinaryContentSerializer,
+                          MessageListSerializer)
 
 
 class ScheduleViewSet(ModelViewSet):
@@ -43,3 +45,16 @@ class BinaryContentViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = BinaryContent.objects.all()
     serializer_class = BinaryContentSerializer
+
+
+class MessageSetMessagesList(ListAPIView):
+    serializer_class = MessageListSerializer
+
+    def get_queryset(self):
+        """
+        This view should return a list of all the messages
+        for the supplied messageset.
+        """
+        messageset = self.kwargs['messageset']
+        data = Message.objects.filter(messageset=messageset)
+        return data
