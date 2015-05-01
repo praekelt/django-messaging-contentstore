@@ -391,7 +391,6 @@ class TestContentStore(AuthenticatedAPITestCase):
         response = self.client.get('/messageset/%s/messages' % messageset.id,
                                    content_type='application/json')
         content = json.loads(response.content)
-        print content
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content["short_name"], "Three Message Set")
         self.assertEqual(len(content["messages"]), 3)
