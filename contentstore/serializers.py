@@ -46,3 +46,12 @@ class MessageListSerializer(serializers.ModelSerializer):
         model = Message
         fields = ('id', 'messageset', 'sequence_number', 'lang',
                   'text_content', 'binary_content', 'created_at', 'updated_at')
+
+
+class MessageSetMessagesSerializer(serializers.ModelSerializer):
+    messages = MessageListSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = MessageSet
+        fields = ('id', 'short_name', 'notes', 'next_set', 'default_schedule',
+                  'messages', 'created_at', 'updated_at')
