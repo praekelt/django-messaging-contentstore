@@ -1,10 +1,10 @@
 from .models import Schedule, MessageSet, Message, BinaryContent
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from .serializers import (ScheduleSerializer, MessageSetSerializer,
                           MessageSerializer, BinaryContentSerializer,
-                          MessageListSerializer)
+                          MessageListSerializer, MessageSetMessagesSerializer)
 
 
 class ScheduleViewSet(ModelViewSet):
@@ -35,6 +35,7 @@ class MessageViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
+    filter_fields = ('messageset', 'sequence_number', )
 
 
 class BinaryContentViewSet(ModelViewSet):
@@ -47,14 +48,21 @@ class BinaryContentViewSet(ModelViewSet):
     serializer_class = BinaryContentSerializer
 
 
-class MessageSetMessagesList(ListAPIView):
+class MessagesContentView(ModelViewSet):
+
+    """
+    A simple ViewSet for viewing more detailed message content.
+    """
+    permission_classes = (IsAuthenticated,)
+    queryset = Message.objects.all()
     serializer_class = MessageListSerializer
 
-    def get_queryset(self):
-        """
-        This view should return a list of all the messages
-        for the supplied messageset.
-        """
-        messageset = self.kwargs['messageset']
-        data = Message.objects.filter(messageset=messageset)
-        return data
+
+class MessagesetMessagesContentView(ModelViewSet):
+
+    """
+    API endpoint that allows MessageSet models to be viewed or edited.
+    """
+    permission_classes = (IsAuthenticated,)
+    queryset = MessageSet.objects.all()
+    serializer_class = MessageSetMessagesSerializer

@@ -16,6 +16,8 @@ urlpatterns = [
         include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api-token-auth/',
         'rest_framework.authtoken.views.obtain_auth_token'),
-    url('^messageset/(?P<messageset>.+)/messages$',
-        views.MessageSetMessagesList.as_view()),
+    url('^message/(?P<pk>.+)/content$',
+        views.MessagesContentView.as_view({'get': 'retrieve'})),
+    url('^messageset/(?P<pk>.+)/messages$',
+        views.MessagesetMessagesContentView.as_view({'get': 'retrieve'})),
 ]
