@@ -347,7 +347,7 @@ class TestContentStore(AuthenticatedAPITestCase):
                                     content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_get_messageset_messages_binary_and_text(self):
+    def test_get_message_content(self):
         schedule = self.make_schedule()
         messageset = self.make_messageset(default_schedule=schedule,
                                           short_name="Full Set")
@@ -356,18 +356,48 @@ class TestContentStore(AuthenticatedAPITestCase):
                                     text_content="Message two",
                                     binary_content=binarycontent)
 
-        response = self.client.get('/messageset/%s/messages' % messageset.id,
+        response = self.client.get('/message/%s/content' % message.id,
                                    content_type='application/json')
         content = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.assertEqual(len(content), 1)
-        self.assertEqual(content[0]["binary_content"]["id"], binarycontent.id)
-        self.assertEqual(content[0]["text_content"], message.text_content)
-        self.assertEqual(content[0]["lang"], message.lang)
-        self.assertEqual(content[0]["messageset"], messageset.id)
+        self.assertEqual(content["binary_content"]["id"], binarycontent.id)
+        self.assertEqual(content["text_content"], message.text_content)
+        self.assertEqual(content["lang"], message.lang)
+        self.assertEqual(content["messageset"], messageset.id)
         self.assertEqual(
-            content[0]["sequence_number"], message.sequence_number)
-        self.assertEqual("created_at" in content[0], True)
-        self.assertEqual("updated_at" in content[0], True)
-        self.assertEqual("id" in content[0], True)
+            content["sequence_number"], message.sequence_number)
+        self.assertEqual("created_at" in content, True)
+        self.assertEqual("updated_at" in content, True)
+        self.assertEqual("id" in content, True)
+
+    def test_get_messageset_messages_content(self):
+        schedule = self.make_schedule()
+        messageset = self.make_messageset(default_schedule=schedule,
+                                          short_name="Three Message Set")
+        binarycontent = self.make_binary_content()
+        message2 = self.make_message(messageset=messageset,
+                                     text_content="Message two",
+                                     sequence_number=2,
+                                     binary_content=binarycontent)
+        message1 = self.make_message(messageset=messageset,
+                                     sequence_number=1,
+                                     text_content="Message one",
+                                     binary_content=binarycontent)
+        message3 = self.make_message(messageset=messageset,
+                                     sequence_number=3,
+                                     text_content="Message three",
+                                     binary_content=binarycontent)
+
+        response = self.client.get('/messageset/%s/messages' % messageset.id,
+                                   content_type='application/json')
+        content = json.loads(response.content)
+        print content
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content["short_name"], "Three Message Set")
+        self.assertEqual(len(content["messages"]), 3)
+        messages = content["messages"]  # They should be sorted by seq num now
+        self.assertEqual(messages[0]["binary_content"]["id"], binarycontent.id)
+        self.assertEqual(messages[0]["text_content"], "Message one")
+        self.assertEqual(messages[0]["id"], message1.id)
+        self.assertEqual(messages[1]["id"], message2.id)
+        self.assertEqual(messages[2]["id"], message3.id)
