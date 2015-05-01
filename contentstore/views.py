@@ -1,6 +1,5 @@
 from .models import Schedule, MessageSet, Message, BinaryContent
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from rest_framework.generics import ListAPIView
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from .serializers import (ScheduleSerializer, MessageSetSerializer,
                           MessageSerializer, BinaryContentSerializer,
