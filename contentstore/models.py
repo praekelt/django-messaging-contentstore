@@ -96,6 +96,9 @@ class Message(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['sequence_number']
+
     def clean(self):
         # Don't allow messages to have neither a text or binary content
         if self.text_content is None and self.binary_content is None:
