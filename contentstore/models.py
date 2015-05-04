@@ -1,3 +1,4 @@
+import os.path
 from django.db import models
 from rest_framework.serializers import ValidationError
 from django.utils.translation import ugettext_lazy as _
@@ -59,7 +60,7 @@ class MessageSet(models.Model):
 
 
 def generate_new_filename(instance, filename):
-    ext = filename.split('.')[-1]  # get file extension
+    ext = os.path.splitext(filename)[-1]  # get file extension
     return "%s.%s" % (datetime.now().strftime("%Y%m%d%H%M%S%f"), ext)
 
 
