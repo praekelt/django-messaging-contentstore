@@ -100,7 +100,7 @@ class Message(models.Model):
 
     def clean(self):
         # Don't allow messages to have neither a text or binary content
-        if self.text_content is None and self.binary_content is None:
+        if any([self.text_content, self.binary_content]) is False:
             raise ValidationError(
                 _('Messages must have text or file attached'))
 
