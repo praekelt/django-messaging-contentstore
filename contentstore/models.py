@@ -1,5 +1,4 @@
 from django.db import models
-# from django.core.exceptions import ValidationError
 from rest_framework.serializers import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from datetime import datetime
@@ -32,7 +31,7 @@ class Schedule(models.Model):
 
     def __unicode__(self):
         rfield = lambda f: f and str(f).replace(' ', '') or '*'
-        return '{0} {1} {2} {3} {4} (m/h/d/dM/MY)'.format(
+        return u'{0} {1} {2} {3} {4} (m/h/d/dM/MY)'.format(
             rfield(self.minute), rfield(self.hour), rfield(self.day_of_week),
             rfield(self.day_of_month), rfield(self.month_of_year),
         )
@@ -56,7 +55,7 @@ class MessageSet(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return "%s" % self.short_name
+        return u"%s" % self.short_name
 
 
 def generate_new_filename(instance, filename):
@@ -76,7 +75,7 @@ class BinaryContent(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return "%s" % (self.content.path.split('/')[-1])
+        return u"%s" % (self.content.path.split('/')[-1])
 
 
 class Message(models.Model):
