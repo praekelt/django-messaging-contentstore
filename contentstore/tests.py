@@ -395,3 +395,62 @@ class TestContentStore(AuthenticatedAPITestCase):
         self.assertEqual(messages[0]["id"], message1.id)
         self.assertEqual(messages[1]["id"], message2.id)
         self.assertEqual(messages[2]["id"], message3.id)
+
+
+class TestFakeContentStoreApi(TestCase):
+
+    def setUp(self):
+        try:
+            from fake_contentstore import Request, FakeContentStoreApi
+        except ImportError as err:
+            if "fake_contentstore" not in err.args[0]:
+                raise
+            raise ImportError(" ".join([
+                err.args[0],
+                "(install from pypi or the 'verified-fake' directory)"]))
+
+        self.req_class = Request
+        self.api_class = FakeContentStoreApi
+
+    def mk_api(self):
+        return self.api_class("", "token-1", {})
+
+    def request(
+            self, api, method, path, body=None, headers=None, auth=True,
+            parser=None):
+        if headers is None:
+            headers = {}
+        if auth:
+            headers["Authorization"] = "Token token-1"
+        resp = api.handle_request(self.req_class(
+            method, path, body=body, headers=headers))
+        return resp.code, resp.data
+
+    def create_messageset(self, api, **messageset_data):
+        return api.messagesets.create_messageset(messageset_data)
+
+    def get_messageset(self, api, messageset_key):
+        return api.messagesets.get_messageset(messageset_key)
+
+    def messageset_exists(self, api, messageset_key):
+        from fake_go_messageset import FakeMessageSetError
+        try:
+            self.get_messageset(api, messageset_key)
+        except FakeMessageSetError:
+            return False
+        else:
+            return True
+
+    def test_create_messageset(self):
+        api = self.mk_api()
+        resp = self.request(
+            api, "POST", "/messageset/", json.dumps({
+                u"short_name": u"Full Set",
+                u"notes": u"A full set of messages.",
+                u"default_schedule": 1
+            }))
+        self.assertEqual(resp[0], 200)
+        self.assertEqual(resp[1]["short_name"], u"Full Set")
+        self.assertEqual(resp[1]["notes"], u"A full set of messages.")
+        self.assertEqual(resp[1]["default_schedule"], 1)
+        self.assertEqual(resp[1]["next_set"], None)
