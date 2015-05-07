@@ -201,7 +201,6 @@ class FakeContentStoreApi(object):
         request_type = request_type[:request_type.find('/')]
         prefix = "/".join([self.url_path_prefix.rstrip("/"), request_type])
         messageset_key = request.path.replace(prefix, "").lstrip("/")
-        messageset_key
 
         handler = {
             'messageset': self.messagesets,
