@@ -1,0 +1,136 @@
+
+"""
+Client for Messaging Content Store HTTP services APIs.
+
+"""
+import requests
+
+
+class ContentStoreApiClient(object):
+
+    """
+    Client for Content Store API.
+
+    :param str auth_token:
+
+        An access token.
+
+    :param str api_url:
+        The full URL of the API. Defaults to
+        ``http://testserver/contentstore``.
+
+    """
+
+    def __init__(self, auth_token, api_url=None, session=None):
+        self.auth_token = auth_token
+        if api_url is None:
+            api_url = "http://testserver/contentstore"
+        self.api_url = api_url
+        self.headers = {
+            'Authorization': 'Token ' + auth_token,
+            'Content-Type': 'application/json;charset=utf-8'
+        }
+        if session is None:
+            session = requests.Session()
+            session.headers.update(self.headers)
+        self.session = session
+
+    def get_messagesets(self, params=None):
+        url = '%s/messageset' % (self.api_url.rstrip('/'),)
+        return self.session.get(url, params=params).json()
+
+    def get_messageset(self, messageset_id):
+        url = '%s/messageset/%s' % (self.api_url.rstrip('/'), messageset_id)
+        return self.session.get(url).json()
+
+    def get_messageset_messages(self, messageset_id):
+        url = '%s/messageset/%s/messages' % (self.api_url.rstrip('/'),
+                                             messageset_id)
+        return self.session.get(url).json()
+
+    def create_messageset(self, messageset):
+        url = '%s/messageset' % (self.api_url.rstrip('/'),)
+        return self.session.post(url, data=messageset).json()
+
+    def update_messageset(self, messageset_id, messageset):
+        url = '%s/messageset/%s' % (self.api_url.rstrip('/'), messageset_id)
+        return self.session.put(url, data=messageset).json()
+
+    def delete_messageset(self, messageset_id):
+        url = '%s/messageset/%s' % (self.api_url.rstrip('/'), messageset_id)
+        return self.session.delete(url).json()
+
+    def get_messages(self, params=None):
+        url = '%s/message' % (self.api_url.rstrip('/'),)
+        return self.session.get(url, params=params).json()
+
+    def get_message(self, message_id):
+        url = '%s/message/%s' % (self.api_url.rstrip('/'), message_id)
+        return self.session.get(url).json()
+
+    def get_message_content(self, message_id):
+        url = '%s/message/%s/content' % (self.api_url.rstrip('/'), message_id)
+        return self.session.get(url).json()
+
+    def create_message(self, message):
+        url = '%s/message' % (self.api_url.rstrip('/'),)
+        return self.session.post(url, data=message).json()
+
+    def update_message(self, message_id, message):
+        url = '%s/message/%s' % (self.api_url.rstrip('/'), message_id)
+        return self.session.put(url, data=message).json()
+
+    def delete_message(self, message_id):
+        url = '%s/message/%s' % (self.api_url.rstrip('/'), message_id)
+        return self.session.delete(url).json()
+
+    def get_schedules(self, params=None):
+        url = '%s/schedule' % (self.api_url.rstrip('/'),)
+        return self.session.get(url, params=params).json()
+
+    def get_schedule(self, schedule_id):
+        url = '%s/schedule/%s' % (self.api_url.rstrip('/'), schedule_id)
+        return self.session.get(url).json()
+
+    def create_schedule(self, schedule):
+        url = '%s/schedule' % (self.api_url.rstrip('/'),)
+        return self.session.post(url, data=schedule).json()
+
+    def update_schedule(self, schedule_id, schedule):
+        url = '%s/schedule/%s' % (self.api_url.rstrip('/'), schedule_id)
+        return self.session.put(url, data=schedule).json()
+
+    def delete_schedule(self, schedule_id):
+        url = '%s/schedule/%s' % (self.api_url.rstrip('/'), schedule_id)
+        return self.session.delete(url).json()
+
+    def get_binarycontents(self, params=None):
+        url = '%s/binarycontent' % (self.api_url.rstrip('/'),)
+        return self.session.get(url, params=params).json()
+
+    def get_binarycontent(self, binarycontent_id):
+        url = '%s/binarycontent/%s' % (self.api_url.rstrip('/'),
+                                       binarycontent_id)
+        return self.session.get(url).json()
+
+    def create_binarycontent(self, binarycontent):
+        post_data = {
+            "content": binarycontent
+        }
+        url = '%s/binarycontent' % (self.api_url.rstrip('/'),)
+        return self.session.post(url, data=post_data,
+                                 format='multipart').json()
+
+    def update_binarycontent(self, binarycontent_id, binarycontent):
+        post_data = {
+            "content": binarycontent
+        }
+        url = '%s/binarycontent/%s' % (self.api_url.rstrip('/'),
+                                       binarycontent_id)
+        return self.session.put(url, data=post_data,
+                                format='multipart').json()
+
+    def delete_binarycontent(self, binarycontent_id):
+        url = '%s/binarycontent/%s' % (self.api_url.rstrip('/'),
+                                       binarycontent_id)
+        return self.session.delete(url).json()
