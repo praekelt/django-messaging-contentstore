@@ -52,6 +52,7 @@ class TestContentStoreApiClient(TestCase):
         self.session = TestSession()
         adapter = FakeContentStoreApiAdapter(self.messageset_backend)
         self.session.mount(self.API_URL, adapter)
+        # self.session = Session()
 
     def make_client(self, auth_token=AUTH_TOKEN):
         return ContentStoreApiClient(
@@ -62,78 +63,67 @@ class TestContentStoreApiClient(TestCase):
         self.messageset_data[existing_messageset[u"id"]] = existing_messageset
         return existing_messageset
 
-    # def assert_messageset_status(self, messageset_id, exists=True):
-    #     exists_status = (messageset_id in self.messageset_data)
-    #     self.assertEqual(exists_status, exists)
+    def assert_messageset_status(self, messageset_id, exists=True):
+        exists_status = (messageset_id in self.messageset_data)
+        self.assertEqual(exists_status, exists)
 
-    # def assert_http_error(self, expected_status, func, *args, **kw):
-    #     print "Asserting"
-    #     try:
-    #         func(*args, **kw)
-    #     except HTTPError as err:
-    #         print err.response.status_code
-    #         self.assertEqual(err.response.status_code, expected_status)
-    #     else:
-    #         self.fail(
-    #             "Expected HTTPError with status %s." % (expected_status,))
+    def assert_http_error(self, expected_status, func, *args, **kw):
+        print "Asserting"
+        try:
+            func(*args, **kw)
+        except HTTPError as err:
+            print err.response.status_code
+            self.assertEqual(err.response.status_code, expected_status)
+        else:
+            self.fail(
+                "Expected HTTPError with status %s." % (expected_status,))
 
-    # def test_assert_http_error(self):
-    #     self.session.mount("http://bad.example.com/", TestAdapter("", 500))
+    def test_assert_http_error(self):
+        self.session.mount("http://bad.example.com/", TestAdapter("", 500))
 
-    #     def bad_req():
-    #         r = self.session.get("http://bad.example.com/")
-    #         r.raise_for_status()
+        def bad_req():
+            r = self.session.get("http://bad.example.com/")
+            r.raise_for_status()
 
-    #     # Fails when no exception is raised.
-    #     self.assertRaises(
-    #         self.failureException, self.assert_http_error, 404, lambda: None)
+        # Fails when no exception is raised.
+        self.assertRaises(
+            self.failureException, self.assert_http_error, 404, lambda: None)
 
-    #     # Fails when an HTTPError with the wrong status code is raised.
-    #     self.assertRaises(
-    #         self.failureException, self.assert_http_error, 404, bad_req)
+        # Fails when an HTTPError with the wrong status code is raised.
+        self.assertRaises(
+            self.failureException, self.assert_http_error, 404, bad_req)
 
-    #     # Passes when an HTTPError with the expected status code is raised.
-    #     self.assert_http_error(500, bad_req)
+        # Passes when an HTTPError with the expected status code is raised.
+        self.assert_http_error(500, bad_req)
 
-    #     # Non-HTTPError exceptions aren't caught.
-    #     def raise_error():
-    #         raise ValueError()
+        # Non-HTTPError exceptions aren't caught.
+        def raise_error():
+            raise ValueError()
 
-    #     self.assertRaises(ValueError, self.assert_http_error, 404, raise_error)
+        self.assertRaises(ValueError, self.assert_http_error, 404, raise_error)
 
-    # def test_default_session(self):
-    #     import requests
-    #     contentstore = ContentStoreApiClient(self.AUTH_TOKEN)
-    #     self.assertTrue(isinstance(contentstore.session, requests.Session))
+    def test_default_session(self):
+        import requests
+        contentstore = ContentStoreApiClient(self.AUTH_TOKEN)
+        self.assertTrue(isinstance(contentstore.session, requests.Session))
 
-    # def test_default_api_url(self):
-    #     contentstore = ContentStoreApiClient(self.AUTH_TOKEN)
-    #     self.assertEqual(
-    #         contentstore.api_url, "http://testserver/contentstore")
-
-    # def test_auth_failure(self):
-    #     contentstore = self.make_client(auth_token="bogus_token")
-    #     res = contentstore.get_messagesets()
-    #     self.assertEqual(True, False)
-        #
-        # print type(res.status_code)
-        # self.assert_http_error(403, contentstore.get_messagesets)
+    def test_default_api_url(self):
+        contentstore = ContentStoreApiClient(self.AUTH_TOKEN)
+        self.assertEqual(
+            contentstore.api_url, "http://testserver/contentstore")
 
     def test_auth_failure(self):
         contentstore = self.make_client(auth_token="bogus_token")
-        res = contentstore.get_messageset(1)
-        print res
-        self.assertEqual(True, False)
+        self.assert_http_error(401, contentstore.get_messagesets)
 
-    # def test_get_messageset(self):
-    #     expected_messageset = self.make_existing_messageset({
-    #         u"short_name": u"Full Set",
-    #         u"notes": u"A full set of messages.",
-    #         u"default_schedule": 1
-    #     })
-    #     contentstore = self.make_client()
-    #     # print contentstore
-    #     res = contentstore.get_messagesets()
-    #     # print type(res)
-    #     [messageset] = list(contentstore.get_messagesets())
-    #     self.assertEqual(messageset, expected_messageset)
+    def test_get_messageset(self):
+        expected_messageset = self.make_existing_messageset({
+            u"short_name": u"Full Set",
+            u"notes": u"A full set of messages.",
+            u"default_schedule": 1
+        })
+        contentstore = self.make_client()
+        # print contentstore
+        res = contentstore.get_messagesets()
+        [messageset] = list(contentstore.get_messagesets())
+        self.assertEqual(messageset, expected_messageset)
