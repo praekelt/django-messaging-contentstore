@@ -2,8 +2,6 @@ import json
 import pkg_resources
 from rest_framework import status
 
-# from contentstore.models import Schedule, MessageSet, Message, BinaryContent
-
 
 class ContentStoreApiTestMixin(object):
 
