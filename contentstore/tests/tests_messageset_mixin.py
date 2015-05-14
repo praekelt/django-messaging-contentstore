@@ -2,7 +2,7 @@ import json
 import pkg_resources
 from rest_framework import status
 
-from contentstore.models import Schedule, MessageSet, Message, BinaryContent
+# from contentstore.models import Schedule, MessageSet, Message, BinaryContent
 
 
 class ContentStoreApiTestMixin(object):
@@ -67,8 +67,8 @@ class ContentStoreApiTestMixin(object):
                                       content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        check = Schedule.objects.filter(id=existing_schedule_id).count()
-        self.assertEqual(check, 0)
+        check = self.get_schedules()
+        self.assertEqual(len(check), 0)
 
     def test_create_messageset(self):
         default_schedule = self.make_schedule()
@@ -142,8 +142,8 @@ class ContentStoreApiTestMixin(object):
                                       content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        check = MessageSet.objects.filter(id=default_messageset_id).count()
-        self.assertEqual(check, 0)
+        check = self.get_messagesets()
+        self.assertEqual(len(check), 0)
 
     def test_create_message_text(self):
         schedule = self.make_schedule()
@@ -193,8 +193,8 @@ class ContentStoreApiTestMixin(object):
                                       content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        check = Message.objects.filter(id=message_id).count()
-        self.assertEqual(check, 0)
+        check = self.get_messages()
+        self.assertEqual(len(check), 0)
 
     def test_create_binary_content(self):
         simple_png = pkg_resources.resource_stream('contentstore', 'test.png')
@@ -208,8 +208,8 @@ class ContentStoreApiTestMixin(object):
                                     )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        d = BinaryContent.objects.last()
-        self.assertEqual(d.content.name.split('.')[-1], 'png')
+        d = self.get_binary_content()
+        self.assertEqual(d["content"].split('.')[-1], 'png')
 
     def tests_delete_binary_content(self):
         binarycontent = self.make_binary_content()
@@ -218,8 +218,8 @@ class ContentStoreApiTestMixin(object):
                                       content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        check = BinaryContent.objects.filter(id=binarycontent_id).count()
-        self.assertEqual(check, 0)
+        check = self.get_binary_contents()
+        self.assertEqual(len(check), 0)
 
     def test_create_message_binary(self):
         schedule = self.make_schedule()
@@ -242,7 +242,7 @@ class ContentStoreApiTestMixin(object):
         self.assertEqual(d["messageset"], messageset.id)
         self.assertEqual(d["sequence_number"], 2)
         self.assertEqual(d["lang"], "afr_ZA")
-        # self.assertEqual(d["binary_content.content.name.split('.')[-1], 'png')
+        self.assertEqual(d["binary_content"], binarycontent_id)
 
     def test_create_message_binary_and_text(self):
         schedule = self.make_schedule()
@@ -266,7 +266,7 @@ class ContentStoreApiTestMixin(object):
         self.assertEqual(d["messageset"], messageset.id)
         self.assertEqual(d["sequence_number"], 2)
         self.assertEqual(d["lang"], "afr_ZA")
-        # self.assertEqual(d["binary_content.content.name.split('.')[-1]"], 'png')
+        self.assertEqual(d["binary_content"], binarycontent_id)
         self.assertEqual(d["text_content"], "Message two")
 
     def test_create_message_no_content_rejected(self):

@@ -7,7 +7,8 @@ from rest_framework.authtoken.models import Token
 from contentstore.tests.tests_messageset_mixin import ContentStoreApiTestMixin
 from contentstore.models import Schedule, MessageSet, Message, BinaryContent
 from contentstore.serializers import (ScheduleSerializer, MessageSetSerializer,
-                                      MessageSerializer)
+                                      MessageSerializer,
+                                      BinaryContentSerializer)
 
 
 class TestContentStore(TestCase, ContentStoreApiTestMixin):
@@ -40,6 +41,13 @@ class TestContentStore(TestCase, ContentStoreApiTestMixin):
             d = Schedule.objects.get(pk=schedule_id)
         return ScheduleSerializer(d).data
 
+    def get_schedules(self):
+        d = Schedule.objects.all()
+        s = []
+        for schedule in d:
+            s.append(ScheduleSerializer(schedule).data)
+        return s
+
     def make_messageset(self, default_schedule, short_name="new set",
                         next_set=None):
         message_set, created = MessageSet.objects.get_or_create(
@@ -53,6 +61,13 @@ class TestContentStore(TestCase, ContentStoreApiTestMixin):
         else:
             d = MessageSet.objects.get(pk=messageset_id)
         return MessageSetSerializer(d).data
+
+    def get_messagesets(self):
+        d = MessageSet.objects.all()
+        s = []
+        for messageset in d:
+            s.append(MessageSetSerializer(messageset).data)
+        return s
 
     def make_message(self, messageset, sequence_number=1, lang="eng_GB",
                      text_content="Testing 1 2 3", binary_content=None):
@@ -69,6 +84,13 @@ class TestContentStore(TestCase, ContentStoreApiTestMixin):
             d = Message.objects.get(pk=message_id)
         return MessageSerializer(d).data
 
+    def get_messages(self):
+        d = Message.objects.all()
+        s = []
+        for message in d:
+            s.append(MessageSerializer(message).data)
+        return s
+
     def make_binary_content(self):
         simple_png = pkg_resources.resource_stream('contentstore', 'test.png')
 
@@ -81,3 +103,17 @@ class TestContentStore(TestCase, ContentStoreApiTestMixin):
                          )
 
         return BinaryContent.objects.last()
+
+    def get_binary_content(self, binary_content_id=None):
+        if binary_content_id is None:
+            d = BinaryContent.objects.last()
+        else:
+            d = BinaryContent.objects.get(pk=binary_content_id)
+        return BinaryContentSerializer(d).data
+
+    def get_binary_contents(self):
+        d = BinaryContent.objects.all()
+        s = []
+        for binary_content in d:
+            s.append(BinaryContentSerializer(binary_content).data)
+        return s
