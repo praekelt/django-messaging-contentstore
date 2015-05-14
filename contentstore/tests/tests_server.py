@@ -6,7 +6,8 @@ from rest_framework.authtoken.models import Token
 
 from contentstore.tests.tests_messageset_mixin import ContentStoreApiTestMixin
 from contentstore.models import Schedule, MessageSet, Message, BinaryContent
-from contentstore.serializers import ScheduleSerializer, MessageSetSerializer
+from contentstore.serializers import (ScheduleSerializer, MessageSetSerializer,
+                                      MessageSerializer)
 
 
 class TestContentStore(TestCase, ContentStoreApiTestMixin):
@@ -61,6 +62,13 @@ class TestContentStore(TestCase, ContentStoreApiTestMixin):
             binary_content=binary_content)
         return message
 
+    def get_message(self, message_id=None):
+        if message_id is None:
+            d = Message.objects.last()
+        else:
+            d = Message.objects.get(pk=message_id)
+        return MessageSerializer(d).data
+
     def make_binary_content(self):
         simple_png = pkg_resources.resource_stream('contentstore', 'test.png')
 
@@ -73,5 +81,3 @@ class TestContentStore(TestCase, ContentStoreApiTestMixin):
                          )
 
         return BinaryContent.objects.last()
-
-
