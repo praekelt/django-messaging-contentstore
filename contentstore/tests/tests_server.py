@@ -3,7 +3,6 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 from rest_framework.authtoken.models import Token
-from django.utils.http import urlencode
 from django.utils import six
 from django.conf import settings
 from rest_framework.settings import api_settings
@@ -15,8 +14,6 @@ from contentstore.models import Schedule, MessageSet, Message, BinaryContent
 from contentstore.serializers import (ScheduleSerializer, MessageSetSerializer,
                                       MessageSerializer,
                                       BinaryContentSerializer)
-
-from pprint import pprint
 
 
 class TestContentStore(TestCase, ContentStoreApiTestMixin):
@@ -126,13 +123,16 @@ class TestContentStore(TestCase, ContentStoreApiTestMixin):
             s.append(BinaryContentSerializer(binary_content).data)
         return s
 
+
 class FakeResponse(object):
+
     def __init__(self, status_code, data):
         self.status_code = status_code
         self.data = data
 
 
 class Struct:
+
     def __init__(self, **entries):
         self.__dict__.update(entries)
 
@@ -177,7 +177,9 @@ class FakeClient(object):
                 "Set TEST_REQUEST_RENDERER_CLASSES to enable "
                 "extra request formats.".format(
                     format,
-                    ', '.join(["'" + fmt + "'" for fmt in self.renderer_classes.keys()])
+                    ', '.join(
+                        ["'" + fmt + "'" for fmt in
+                            self.renderer_classes.keys()])
                 )
             )
 
@@ -204,7 +206,8 @@ class FakeClient(object):
         #     print "WUT?"
         #     r['QUERY_STRING'] = path.split('?')[1]
         # r.update(extra)
-        resp = self.api.handle_request(self.req_class('GET', path, None, self.headers))
+        resp = self.api.handle_request(
+            self.req_class('GET', path, None, self.headers))
         return resp.code, resp.data
 
     def post(self, path, data=None, format=None, content_type=None):
