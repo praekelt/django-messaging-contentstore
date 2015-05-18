@@ -10,6 +10,8 @@ from rest_framework.compat import force_bytes_or_smart_bytes
 
 
 from contentstore.tests.tests_messageset_mixin import ContentStoreApiTestMixin
+from contentstore.tests.tests_messageset_binary_mixin import (
+    ContentStoreBinaryApiTestMixin)
 from contentstore.models import Schedule, MessageSet, Message, BinaryContent
 from contentstore.serializers import (ScheduleSerializer, MessageSetSerializer,
                                       MessageSerializer,
@@ -96,33 +98,6 @@ class TestContentStore(TestCase, ContentStoreApiTestMixin):
             s.append(MessageSerializer(message).data)
         return s
 
-    def make_binary_content(self):
-        simple_png = pkg_resources.resource_stream('contentstore', 'test.png')
-
-        post_data = {
-            "content": simple_png
-        }
-        self.client.post('/binarycontent/',
-                         post_data,
-                         format='multipart',
-                         )
-
-        return BinaryContent.objects.last()
-
-    def get_binary_content(self, binary_content_id=None):
-        if binary_content_id is None:
-            d = BinaryContent.objects.last()
-        else:
-            d = BinaryContent.objects.get(pk=binary_content_id)
-        return BinaryContentSerializer(d).data
-
-    def get_binary_contents(self):
-        d = BinaryContent.objects.all()
-        s = []
-        for binary_content in d:
-            s.append(BinaryContentSerializer(binary_content).data)
-        return s
-
 
 class FakeResponse(object):
 
@@ -199,13 +174,7 @@ class FakeClient(object):
         return ret, content_type
 
     def get(self, path, data=None):
-        # r = {
-        #     'QUERY_STRING': urlencode(data or {}, doseq=True),
-        # }
-        # if not data and '?' in path:
-        #     print "WUT?"
-        #     r['QUERY_STRING'] = path.split('?')[1]
-        # r.update(extra)
+        # TODO: no filter support at the moment
         resp = self.api.handle_request(
             self.req_class('GET', path, None, self.headers))
         return resp.code, resp.data
@@ -265,6 +234,7 @@ class TestFakeContentStore(TestCase, ContentStoreApiTestMixin):
         self.api.messagesets.endpoint_data = {}
         self.api.schedules.endpoint_data = {}
         self.api.messages.endpoint_data = {}
+        self.api.binary_contents.endpoint_data = {}
         self.client = self.make_client()
 
     def make_client(self):
@@ -348,6 +318,114 @@ class TestFakeContentStore(TestCase, ContentStoreApiTestMixin):
         s = []
         for key, message in data.iteritems():
             s.append(message)
+        return s
+
+    def make_binary_content(self):
+        simple_png = pkg_resources.resource_stream('contentstore', 'test.png')
+
+        post_data = {
+            "content": simple_png
+        }
+        self.client.post('/binarycontent/',
+                         post_data,
+                         format='multipart',
+                         )
+
+        return BinaryContent.objects.last()
+
+    def get_binary_content(self, binary_content_id=None):
+        if binary_content_id is None:
+            d = BinaryContent.objects.last()
+        else:
+            d = BinaryContent.objects.get(pk=binary_content_id)
+        return BinaryContentSerializer(d).data
+
+    def get_binary_contents(self):
+        d = BinaryContent.objects.all()
+        s = []
+        for binary_content in d:
+            s.append(BinaryContentSerializer(binary_content).data)
+        return s
+
+
+class TestContentStoreBinary(TestCase, ContentStoreBinaryApiTestMixin):
+
+    def setUp(self):
+        self.client = self.make_client()
+        self.username = 'testuser'
+        self.password = 'testpass'
+        self.user = User.objects.create_user(self.username,
+                                             'testuser@example.com',
+                                             self.password)
+        token = Token.objects.create(user=self.user)
+        self.token = token.key
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
+
+    def make_client(self):
+        return APIClient()
+
+    def make_schedule(self, minute="0", hour="1", day_of_week="*",
+                      day_of_month="*", month_of_year="*"):
+        schedule, created = Schedule.objects.get_or_create(
+            minute=minute, hour=hour, day_of_week=day_of_week,
+            day_of_month=day_of_month, month_of_year=month_of_year)
+        return schedule
+
+    def get_schedule(self, schedule_id=None):
+        if schedule_id is None:
+            d = Schedule.objects.last()
+        else:
+            d = Schedule.objects.get(pk=schedule_id)
+        return ScheduleSerializer(d).data
+
+    def get_schedules(self):
+        d = Schedule.objects.all()
+        s = []
+        for schedule in d:
+            s.append(ScheduleSerializer(schedule).data)
+        return s
+
+    def make_messageset(self, default_schedule, short_name="new set",
+                        next_set=None):
+        message_set, created = MessageSet.objects.get_or_create(
+            short_name=short_name, next_set=next_set,
+            default_schedule_id=default_schedule)
+        return message_set
+
+    def get_messageset(self, messageset_id=None):
+        if messageset_id is None:
+            d = MessageSet.objects.last()
+        else:
+            d = MessageSet.objects.get(pk=messageset_id)
+        return MessageSetSerializer(d).data
+
+    def get_messagesets(self):
+        d = MessageSet.objects.all()
+        s = []
+        for messageset in d:
+            s.append(MessageSetSerializer(messageset).data)
+        return s
+
+    def make_message(self, messageset, sequence_number=1, lang="eng_GB",
+                     text_content="Testing 1 2 3", binary_content=None):
+        message, created = Message.objects.get_or_create(
+            messageset_id=messageset, sequence_number=sequence_number,
+            lang=lang, text_content=text_content,
+            binary_content_id=binary_content)
+        return message
+
+    def get_message(self, message_id=None):
+        if message_id is None:
+            d = Message.objects.last()
+        else:
+            d = Message.objects.get(pk=message_id)
+        return MessageSerializer(d).data
+
+    def get_messages(self):
+        d = Message.objects.all()
+        s = []
+        for message in d:
+            s.append(MessageSerializer(message).data)
         return s
 
     def make_binary_content(self):

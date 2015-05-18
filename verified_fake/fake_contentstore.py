@@ -13,29 +13,6 @@ from urlparse import urlparse, parse_qs
 from random import randint
 
 
-"""
-Missing required - 400
-
-{
-    "field_name": [
-        "This field is required."
-    ]
-}
-Too long
-{
-    "short_name": [
-        "Ensure this field has no more than 20 characters."
-    ]
-}
-
-Unathorized - 401
-{
-    "detail": "Invalid token."
-}
-
-"""
-
-
 class Request(object):
 
     """
@@ -168,12 +145,8 @@ class FakeEndpoint(object):
         for k, v in endpoint_data.iteritems():
             existingobject[k] = v
         self.endpoint_data[object_key] = existingobject
-        print "required?"
         self._check_fields_required(existingobject)  # After to allow PATCH
-        print "fine"
-        print "unique?"
         self._check_fields_unique(self.endpoint_data)
-        print "fine"
         return existingobject
 
     def delete_object(self, object_key):
@@ -184,7 +157,11 @@ class FakeEndpoint(object):
     def request(self, request, object_key, query, endpoint_data):
         if request.method == "POST":
             if object_key is None or object_key is "":
-                return (201, self.create_object(request.body))
+                if request.headers["Content-Type"] == "application/json":
+                    return (201, self.create_object(request.body))
+                else:
+                    # TODO Support 'multipart/form-data'
+                    return FakeObjectError(405, "")
             else:
                 raise FakeObjectError(405, "")
         if request.method == "GET":
@@ -318,7 +295,6 @@ class FakeContentStoreApi(object):
     def handle_request(self, request):
         if not self.check_auth(request):
             return self.build_response("", 403)
-
         url = urlparse(request.path)
         request.path = url.path
         request_type = request.path.replace(
