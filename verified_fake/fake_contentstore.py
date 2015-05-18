@@ -154,7 +154,7 @@ class FakeEndpoint(object):
         self.endpoint_data.pop(object_key)
         return existingobject
 
-    def request(self, request, object_key, query, endpoint_data):
+    def request(self, request, object_key, query):
         if request.method == "POST":
             if object_key is None or object_key is "":
                 if request.headers["Content-Type"] == "application/json":
@@ -319,8 +319,7 @@ class FakeContentStoreApi(object):
 
         try:
             query_string = parse_qs(url.query.decode('utf8'))
-            result = handler.request(request, key, query_string,
-                                     self.messagesets)
+            result = handler.request(request, key, query_string)
             return self.build_response(result[1], code=result[0])
         except FakeObjectError as err:
             return self.build_response(err.data, err.code)
