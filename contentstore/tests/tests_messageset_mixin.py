@@ -74,6 +74,7 @@ class ContentStoreApiTestMixin(object):
         self.assertEqual(d["notes"], "A full set of messages.")
         self.assertEqual(d["default_schedule"], schedule_id)
         self.assertEqual(d["next_set"], None)
+        self.assertEqual(True, False)
 
     def test_create_messageset_missing_schedule(self):
         post_data = {
