@@ -14,4 +14,5 @@ install:
 # command to run tests, e.g. python setup.py test
 script:
   - "py.test --ds=testsettings contentstore/tests/tests_server.py --cov=contentstore"
+  - "py.test --ds=testsettings client/messaging_contentstore/tests"
   - "flake8 contentstore/"
