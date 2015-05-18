@@ -230,7 +230,7 @@ class TestFakeContentStore(TestCase, ContentStoreApiTestMixin):
 
         self.req_class = Request
         self.api_class = FakeContentStoreApi
-        self.api = self.api_class("", "token-1", {}, {})
+        self.api = self.api_class("", "token-1", {}, {}, {}, {})
         self.api.messagesets.endpoint_data = {}
         self.api.schedules.endpoint_data = {}
         self.api.messages.endpoint_data = {}
@@ -288,11 +288,7 @@ class TestFakeContentStore(TestCase, ContentStoreApiTestMixin):
             return data.get(messageset_id)
 
     def get_messagesets(self):
-        data = self.api.messagesets.endpoint_data
-        s = []
-        for key, messageset in data.iteritems():
-            s.append(messageset)
-        return s
+        return self.api.messagesets.endpoint_data.values()
 
     def make_message(self, messageset, sequence_number=1, lang="eng_GB",
                      text_content="Testing 1 2 3", binary_content=None):
@@ -314,38 +310,7 @@ class TestFakeContentStore(TestCase, ContentStoreApiTestMixin):
             return data.get(message_id)
 
     def get_messages(self):
-        data = self.api.messages.endpoint_data
-        s = []
-        for key, message in data.iteritems():
-            s.append(message)
-        return s
-
-    def make_binary_content(self):
-        simple_png = pkg_resources.resource_stream('contentstore', 'test.png')
-
-        post_data = {
-            "content": simple_png
-        }
-        self.client.post('/binarycontent/',
-                         post_data,
-                         format='multipart',
-                         )
-
-        return BinaryContent.objects.last()
-
-    def get_binary_content(self, binary_content_id=None):
-        if binary_content_id is None:
-            d = BinaryContent.objects.last()
-        else:
-            d = BinaryContent.objects.get(pk=binary_content_id)
-        return BinaryContentSerializer(d).data
-
-    def get_binary_contents(self):
-        d = BinaryContent.objects.all()
-        s = []
-        for binary_content in d:
-            s.append(BinaryContentSerializer(binary_content).data)
-        return s
+        return self.api.messages.endpoint_data.values()
 
 
 class TestContentStoreBinary(TestCase, ContentStoreBinaryApiTestMixin):
