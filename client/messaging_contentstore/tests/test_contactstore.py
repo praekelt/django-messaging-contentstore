@@ -8,7 +8,7 @@ from requests import HTTPError
 from requests.adapters import HTTPAdapter
 from requests_testadapter import TestSession, Resp, TestAdapter
 
-from fake_contentstore import Request, FakeContentStoreApi
+from verified_fake.fake_contentstore import Request, FakeContentStoreApi
 
 from messaging_contentstore.contentstore import ContentStoreApiClient
 
@@ -39,18 +39,29 @@ class FakeContentStoreApiAdapter(HTTPAdapter):
 
 
 make_messageset_dict = FakeContentStoreApi.make_messageset_dict
+make_message_dict = FakeContentStoreApi.make_message_dict
 
 
 class TestContentStoreApiClient(TestCase):
-    API_URL = "http://example.com/"
+    API_URL = "http://example.com/contentstore"
     AUTH_TOKEN = "auth_token"
 
     def setUp(self):
         self.messageset_data = {}
-        self.messageset_backend = FakeContentStoreApi(
-            "/", self.AUTH_TOKEN, self.messageset_data)
+        self.schedule_data = {}
+        self.message_data = {}
+        self.binary_content_data = {}
+        self.contentstore_backend = FakeContentStoreApi(
+            "contentstore/", self.AUTH_TOKEN,
+            messageset_data=self.messageset_data,
+            schedule_data=self.schedule_data, message_data=self.message_data,
+            binary_content_data=self.binary_content_data)
+        self.contentstore_backend.messagesets.endpoint_data = {}
+        self.contentstore_backend.messages.endpoint_data = {}
+        self.contentstore_backend.schedules.endpoint_data = {}
+        self.contentstore_backend.binary_contents.endpoint_data = {}
         self.session = TestSession()
-        adapter = FakeContentStoreApiAdapter(self.messageset_backend)
+        adapter = FakeContentStoreApiAdapter(self.contentstore_backend)
         self.session.mount(self.API_URL, adapter)
         # self.session = Session()
 
@@ -60,19 +71,24 @@ class TestContentStoreApiClient(TestCase):
 
     def make_existing_messageset(self, messageset_data):
         existing_messageset = make_messageset_dict(messageset_data)
-        self.messageset_data[existing_messageset[u"id"]] = existing_messageset
+        self.contentstore_backend.messagesets.endpoint_data[
+            existing_messageset[u"id"]] = existing_messageset
         return existing_messageset
+
+    def make_existing_message(self, message_data):
+        existing_message = make_message_dict(message_data)
+        self.contentstore_backend.messages.endpoint_data[
+            existing_message[u"id"]] = existing_message
+        return existing_message
 
     def assert_messageset_status(self, messageset_id, exists=True):
         exists_status = (messageset_id in self.messageset_data)
         self.assertEqual(exists_status, exists)
 
     def assert_http_error(self, expected_status, func, *args, **kw):
-        print "Asserting"
         try:
             func(*args, **kw)
         except HTTPError as err:
-            print err.response.status_code
             self.assertEqual(err.response.status_code, expected_status)
         else:
             self.fail(
@@ -114,7 +130,7 @@ class TestContentStoreApiClient(TestCase):
 
     def test_auth_failure(self):
         contentstore = self.make_client(auth_token="bogus_token")
-        self.assert_http_error(401, contentstore.get_messagesets)
+        self.assert_http_error(403, contentstore.get_messagesets)
 
     def test_get_messageset(self):
         expected_messageset = self.make_existing_messageset({
@@ -123,7 +139,38 @@ class TestContentStoreApiClient(TestCase):
             u"default_schedule": 1
         })
         contentstore = self.make_client()
-        # print contentstore
-        res = contentstore.get_messagesets()
         [messageset] = list(contentstore.get_messagesets())
         self.assertEqual(messageset, expected_messageset)
+
+    def test_create_messageset(self):
+        contentstore = self.make_client()
+        new_messageset = contentstore.create_messageset({
+            u"short_name": u"Full Set1",
+            u"notes": u"A full and new set of messages.",
+            u"default_schedule": 1
+        })
+        [messageset] = list(contentstore.get_messagesets())
+        self.assertEqual(messageset["short_name"], new_messageset["short_name"])
+
+    def test_get_message(self):
+        expected_message = self.make_existing_message({
+            "messageset": 1,
+            "sequence_number": 2,
+            "lang": "afr_ZA",
+            "text_content": "Message two"
+        })
+        contentstore = self.make_client()
+        [message] = list(contentstore.get_messages())
+        self.assertEqual(message, expected_message)
+
+    def test_create_message(self):
+        contentstore = self.make_client()
+        new_message = contentstore.create_message({
+            "messageset": 1,
+            "sequence_number": 2,
+            "lang": "afr_ZA",
+            "text_content": "Message two"
+        })
+        [message] = list(contentstore.get_messages())
+        self.assertEqual(message["text_content"],
+                         new_message["text_content"])

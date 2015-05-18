@@ -4,6 +4,7 @@ Client for Messaging Content Store HTTP services APIs.
 
 """
 import requests
+import json
 
 
 class ContentStoreApiClient(object):
@@ -28,7 +29,7 @@ class ContentStoreApiClient(object):
         self.api_url = api_url
         self.headers = {
             'Authorization': 'Token ' + auth_token,
-            'Content-Type': 'application/json;charset=utf-8'
+            'Content-Type': 'application/json'
         }
         if session is None:
             session = requests.Session()
@@ -56,13 +57,13 @@ class ContentStoreApiClient(object):
 
     def create_messageset(self, messageset):
         url = '%s/messageset/' % (self.api_url.rstrip('/'),)
-        result = self.session.post(url, data=messageset)
+        result = self.session.post(url, data=json.dumps(messageset))
         result.raise_for_status()
         return result.json()
 
     def update_messageset(self, messageset_id, messageset):
         url = '%s/messageset/%s/' % (self.api_url.rstrip('/'), messageset_id)
-        result = self.session.put(url, data=messageset)
+        result = self.session.put(url, data=json.dumps(messageset))
         result.raise_for_status()
         return result.json()
 
@@ -92,13 +93,13 @@ class ContentStoreApiClient(object):
 
     def create_message(self, message):
         url = '%s/message/' % (self.api_url.rstrip('/'),)
-        result = self.session.post(url, data=message)
+        result = self.session.post(url, data=json.dumps(message))
         result.raise_for_status()
         return result.json()
 
     def update_message(self, message_id, message):
         url = '%s/message/%s/' % (self.api_url.rstrip('/'), message_id)
-        result = self.session.put(url, data=message)
+        result = self.session.put(url, data=json.dumps(message))
         result.raise_for_status()
         return result.json()
 
@@ -122,13 +123,13 @@ class ContentStoreApiClient(object):
 
     def create_schedule(self, schedule):
         url = '%s/schedule/' % (self.api_url.rstrip('/'),)
-        result = self.session.post(url, data=schedule)
+        result = self.session.post(url, data=json.dumps(schedule))
         result.raise_for_status()
         return result.json()
 
     def update_schedule(self, schedule_id, schedule):
         url = '%s/schedule/%s/' % (self.api_url.rstrip('/'), schedule_id)
-        result = self.session.put(url, data=schedule)
+        result = self.session.put(url, data=json.dumps(schedule))
         result.raise_for_status()
         return result.json()
 
