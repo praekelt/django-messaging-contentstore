@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="fake-django-messaging-contentstore",
-    version="0.1.1a",
+    version="0.1.2",
     url='http://github.com/praekelt/django-messaging-contentstore',
     license='BSD',
     description="A verified fake implementation of \
