@@ -121,7 +121,7 @@ class FakeEndpoint(object):
         self._check_fields_unique(self.endpoint_data)
         return newobject
 
-    def get_object(self, object_key):
+    def get_object(self, object_key, sub_request=None):
         existingobject = self.endpoint_data.get(object_key)
         if existingobject is None:
             raise FakeObjectError(
@@ -154,7 +154,7 @@ class FakeEndpoint(object):
         self.endpoint_data.pop(object_key)
         return existingobject
 
-    def request(self, request, object_key, query):
+    def request(self, request, object_key, query, sub_request):
         if request.method == "POST":
             if object_key is None or object_key is "":
                 if request.headers["Content-Type"] == "application/json":
@@ -168,7 +168,7 @@ class FakeEndpoint(object):
             if object_key is None or object_key is "":
                 return (200, self.get_all(query))
             else:
-                return (200, self.get_object(object_key))
+                return (200, self.get_object(object_key, sub_request))
         elif request.method == "PUT":
             # NOTE: This is an incorrect use of the PUT method, but
             # it's what we have for now.
@@ -201,6 +201,17 @@ class FakeMessageSet(FakeEndpoint):
         }
         data.update(fields)
         return data
+
+    def get_object(self, object_key, sub_request=None):
+        # Override to support messageset messages
+        existingobject = self.endpoint_data.get(object_key)
+        if existingobject is None:
+            raise FakeObjectError(
+                404, u"Object %r not found." % (object_key,))
+        if sub_request is not None:
+            # get messages - assumes all messages in fake are for current set
+            existingobject["messages"] = self.messages.endpoint_data.values()
+        return existingobject
 
 
 class FakeSchedule(FakeEndpoint):
@@ -296,15 +307,19 @@ class FakeContentStoreApi(object):
         if not self.check_auth(request):
             return self.build_response("", 403)
         url = urlparse(request.path)
-        request.path = url.path
-        request_type = request.path.replace(
-            self.url_path_prefix, '').lstrip('/')
-        request_type = request_type[:request_type.find('/')]
-        prefix = "/".join([self.url_path_prefix.rstrip("/"), request_type])
-        key = request.path.replace(prefix, "").strip("/")
+        request.path = url.path.strip("/")
+        parts = request.path.split("/")
+        request_type, key, sub_request = None, None, None
+        if len(parts) >= 1:
+            request_type = parts[0]
+        if len(parts) >= 2:
+            key = parts[1]
+        if len(parts) >= 3:
+            sub_request = parts[2]
+
         try:
             key = int(key)
-        except ValueError as err:
+        except (ValueError, TypeError) as err:
             pass  # not a pk
 
         handler = {
@@ -319,8 +334,9 @@ class FakeContentStoreApi(object):
 
         try:
             query_string = parse_qs(url.query.decode('utf8'))
-            result = handler.request(request, key, query_string)
-            return self.build_response(result[1], code=result[0])
+            result = handler.request(request, key, query_string, sub_request)
+            return self.build_response(result[1], code=result[0],
+                                       headers=request.headers)
         except FakeObjectError as err:
             return self.build_response(err.data, err.code)
 
