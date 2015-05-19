@@ -9,6 +9,7 @@ same for both.
 
 
 import json
+import weakref
 from urlparse import urlparse, parse_qs
 from random import randint
 
@@ -66,7 +67,8 @@ class FakeEndpoint(object):
     FakeEndpoint base class
     """
 
-    def __init__(self, endpoint_data={}):
+    def __init__(self, parent, endpoint_data={}):
+        self.parent = weakref.ref(parent)
         self.endpoint_data = endpoint_data
         self.required_fields = None
         self.unique_fields = None
@@ -183,8 +185,8 @@ class FakeEndpoint(object):
 
 class FakeMessageSet(FakeEndpoint):
 
-    def __init__(self, endpoint_data={}):
-        super(FakeMessageSet, self).__init__()
+    def __init__(self, parent, endpoint_data={}):
+        super(FakeMessageSet, self).__init__(parent, endpoint_data)
         self.required_fields = [u"short_name", u"default_schedule"]
         self.unique_fields = [u"short_name"]
 
@@ -210,14 +212,16 @@ class FakeMessageSet(FakeEndpoint):
                 404, u"Object %r not found." % (object_key,))
         if sub_request is not None:
             # get messages - assumes all messages in fake are for current set
-            existingobject["messages"] = self.messages.endpoint_data.values()
+            messages = sorted(self.parent().messages.endpoint_data.values(),
+                              key=lambda k: k['sequence_number'])
+            existingobject["messages"] = messages
         return existingobject
 
 
 class FakeSchedule(FakeEndpoint):
 
-    def __init__(self, endpoint_data={}):
-        super(FakeSchedule, self).__init__()
+    def __init__(self, parent, endpoint_data={}):
+        super(FakeSchedule, self).__init__(parent, endpoint_data)
         self.required_fields = [u"minute", u"hour", u"day_of_week",
                                 u"day_of_month", u"month_of_year"]
         self.unique_fields = []
@@ -240,8 +244,8 @@ class FakeSchedule(FakeEndpoint):
 
 class FakeMessage(FakeEndpoint):
 
-    def __init__(self, endpoint_data={}):
-        super(FakeMessage, self).__init__()
+    def __init__(self, parent, endpoint_data={}):
+        super(FakeMessage, self).__init__(parent, endpoint_data)
         self.required_fields = [u"messageset", u"sequence_number",
                                 u"lang"]
         self.unique_fields = []
@@ -264,8 +268,8 @@ class FakeMessage(FakeEndpoint):
 
 class FakeBinaryContent(FakeEndpoint):
 
-    def __init__(self, endpoint_data={}):
-        super(FakeBinaryContent, self).__init__()
+    def __init__(self, parent, endpoint_data={}):
+        super(FakeBinaryContent, self).__init__(parent, endpoint_data)
         self.required_fields = [u"content"]
         self.unique_fields = []
 
@@ -291,10 +295,10 @@ class FakeContentStoreApi(object):
                  schedule_data={}, message_data={}, binary_content_data={}):
         self.url_path_prefix = url_path_prefix
         self.auth_token = auth_token
-        self.messagesets = FakeMessageSet(messageset_data)
-        self.schedules = FakeSchedule(schedule_data)
-        self.messages = FakeMessage(message_data)
-        self.binary_contents = FakeBinaryContent(binary_content_data)
+        self.messagesets = FakeMessageSet(self, messageset_data)
+        self.schedules = FakeSchedule(self, schedule_data)
+        self.messages = FakeMessage(self, message_data)
+        self.binary_contents = FakeBinaryContent(self, binary_content_data)
 
     make_messageset_dict = staticmethod(FakeMessageSet.make_dict)
     make_schedule_dict = staticmethod(FakeSchedule.make_dict)
