@@ -159,6 +159,10 @@ class TestContentStoreApiClient(TestCase):
         [messageset] = list(contentstore.get_messagesets())
         self.assertEqual(
             messageset["short_name"], new_messageset["short_name"])
+        self.assertEqual(
+            messageset["notes"], new_messageset["notes"])
+        self.assertEqual(
+            messageset["default_schedule"], new_messageset["default_schedule"])
 
     def test_get_message(self):
         expected_message = self.make_existing_message({
@@ -182,6 +186,12 @@ class TestContentStoreApiClient(TestCase):
         [message] = list(contentstore.get_messages())
         self.assertEqual(message["text_content"],
                          new_message["text_content"])
+        self.assertEqual(message["sequence_number"],
+                         new_message["sequence_number"])
+        self.assertEqual(message["messageset"],
+                         new_message["messageset"])
+        self.assertEqual(message["lang"],
+                         new_message["lang"])
 
     def test_get_schedule(self):
         expected_schedule = self.make_existing_schedule({
