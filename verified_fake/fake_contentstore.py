@@ -311,7 +311,7 @@ class FakeContentStoreApi(object):
         if not self.check_auth(request):
             return self.build_response("", 403)
         url = urlparse(request.path)
-        request.path = url.path.strip("/")
+        request.path = url.path.strip("/").replace(self.url_path_prefix, '')
         parts = request.path.split("/")
         request_type, key, sub_request = None, None, None
         if len(parts) >= 1:
@@ -320,6 +320,10 @@ class FakeContentStoreApi(object):
             key = parts[1]
         if len(parts) >= 3:
             sub_request = parts[2]
+
+        print request_type
+        print key
+        print sub_request
 
         try:
             key = int(key)
