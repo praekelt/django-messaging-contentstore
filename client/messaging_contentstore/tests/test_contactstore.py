@@ -40,6 +40,7 @@ class FakeContentStoreApiAdapter(HTTPAdapter):
 
 make_messageset_dict = FakeContentStoreApi.make_messageset_dict
 make_message_dict = FakeContentStoreApi.make_message_dict
+make_schedule_dict = FakeContentStoreApi.make_schedule_dict
 
 
 class TestContentStoreApiClient(TestCase):
@@ -80,6 +81,12 @@ class TestContentStoreApiClient(TestCase):
         self.contentstore_backend.messages.endpoint_data[
             existing_message[u"id"]] = existing_message
         return existing_message
+
+    def make_existing_schedule(self, schedule_data):
+        existing_schedule = make_schedule_dict(schedule_data)
+        self.contentstore_backend.schedules.endpoint_data[
+            existing_schedule[u"id"]] = existing_schedule
+        return existing_schedule
 
     def assert_messageset_status(self, messageset_id, exists=True):
         exists_status = (messageset_id in self.messageset_data)
@@ -175,3 +182,36 @@ class TestContentStoreApiClient(TestCase):
         [message] = list(contentstore.get_messages())
         self.assertEqual(message["text_content"],
                          new_message["text_content"])
+
+    def test_get_schedule(self):
+        expected_schedule = self.make_existing_schedule({
+            "minute": "1",
+            "hour": "2",
+            "day_of_week": "3",
+            "day_of_month": "4",
+            "month_of_year": "5",
+        })
+        contentstore = self.make_client()
+        [schedule] = list(contentstore.get_schedules())
+        self.assertEqual(schedule, expected_schedule)
+
+    def test_create_schedule(self):
+        contentstore = self.make_client()
+        new_schedule = contentstore.create_schedule({
+            "minute": "1",
+            "hour": "2",
+            "day_of_week": "3",
+            "day_of_month": "4",
+            "month_of_year": "5",
+        })
+        [schedule] = list(contentstore.get_schedules())
+        self.assertEqual(schedule["minute"],
+                         new_schedule["minute"])
+        self.assertEqual(schedule["hour"],
+                         new_schedule["hour"])
+        self.assertEqual(schedule["day_of_week"],
+                         new_schedule["day_of_week"])
+        self.assertEqual(schedule["day_of_month"],
+                         new_schedule["day_of_month"])
+        self.assertEqual(schedule["month_of_year"],
+                         new_schedule["month_of_year"])
