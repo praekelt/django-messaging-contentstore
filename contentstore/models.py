@@ -61,7 +61,7 @@ class MessageSet(models.Model):
 
 def generate_new_filename(instance, filename):
     ext = os.path.splitext(filename)[-1]  # get file extension
-    return "%s.%s" % (datetime.now().strftime("%Y%m%d%H%M%S%f"), ext)
+    return "%s%s" % (datetime.now().strftime("%Y%m%d%H%M%S%f"), ext)
 
 
 class BinaryContent(models.Model):
