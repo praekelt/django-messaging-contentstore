@@ -101,9 +101,10 @@ class TestContentStore(TestCase, ContentStoreApiTestMixin):
 
 class FakeResponse(object):
 
-    def __init__(self, status_code, data):
+    def __init__(self, status_code, data, body):
         self.status_code = status_code
         self.data = data
+        self.content = body
 
 
 class Struct:
@@ -173,46 +174,47 @@ class FakeClient(object):
 
         return ret, content_type
 
-    def get(self, path, data=None):
+    def get(self, path, data=None, content_type=None):
         # TODO: no filter support at the moment
+        self.headers["Content-Type"] = content_type
         resp = self.api.handle_request(
             self.req_class('GET', path, None, self.headers))
-        return resp.code, resp.data
+        return FakeResponse(resp.code, resp.data, resp.body)
 
     def post(self, path, data=None, format=None, content_type=None):
         data, content_type = self._encode_data(data, format, content_type)
         self.headers["Content-Type"] = content_type
         resp = self.api.handle_request(self.req_class('POST', path, data,
                                                       self.headers))
-        return FakeResponse(resp.code, resp.data)
+        return FakeResponse(resp.code, resp.data, resp.body)
 
     def put(self, path, data=None, format=None, content_type=None):
         data, content_type = self._encode_data(data, format, content_type)
         self.headers["Content-Type"] = content_type
         resp = self.api.handle_request(self.req_class('PUT', path, data,
                                                       self.headers))
-        return FakeResponse(resp.code, resp.data)
+        return FakeResponse(resp.code, resp.data, resp.body)
 
     def patch(self, path, data=None, format=None, content_type=None):
         data, content_type = self._encode_data(data, format, content_type)
         self.headers["Content-Type"] = content_type
         resp = self.api.handle_request(self.req_class('PATCH', path, data,
                                                       self.headers))
-        return FakeResponse(resp.code, resp.data)
+        return FakeResponse(resp.code, resp.data, resp.body)
 
     def delete(self, path, data=None, format=None, content_type=None):
         data, content_type = self._encode_data(data, format, content_type)
         self.headers["Content-Type"] = content_type
         resp = self.api.handle_request(self.req_class('DELETE', path, data,
                                                       self.headers))
-        return FakeResponse(resp.code, resp.data)
+        return FakeResponse(resp.code, resp.data, resp.body)
 
     def options(self, path, data=None, format=None, content_type=None):
         data, content_type = self._encode_data(data, format, content_type)
         self.headers["Content-Type"] = content_type
         resp = self.api.handle_request(self.req_class('OPTIONS', path, data,
                                                       self.headers))
-        return FakeResponse(resp.code, resp.data)
+        return FakeResponse(resp.code, resp.data, resp.body)
 
 
 class TestFakeContentStore(TestCase, ContentStoreApiTestMixin):
