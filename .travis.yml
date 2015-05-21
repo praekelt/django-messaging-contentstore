@@ -1,0 +1,26 @@
+language: python
+
+services:
+  - postgresql
+
+env:
+  - DJANGO="django==1.8"
+
+# command to install requirements
+install:
+  - pip install -r requirements.txt --use-mirrors
+  - pip install -r requirements-dev.txt --use-mirrors
+
+# command to run tests, e.g. python setup.py test
+script:
+  - "py.test --ds=testsettings contentstore/tests/tests_server.py --cov=contentstore"
+  - "py.test --ds=testsettings client/messaging_contentstore/tests"
+  - "flake8 contentstore/"
+deploy:
+  provider: pypi
+  user: Praekelt
+  password:
+    secure: "hyTE4zCmNlAT2nnKVijBRvkO/DssCHc1HcaGzPsrfYQ+qgoTmB89CyLjr4FtAh7JVB7jxEvvKSlQGcJLTcJxTb3UCll4B/hVrBjlB1NmOb2FHmVPgmrN1QSG9Tcx3nRJBfXkeCI5FTZ0nBz3EInVUUrht20ID1qqnhnWeBkvKLw="
+  on:
+    tags: true
+    all_branches: true
