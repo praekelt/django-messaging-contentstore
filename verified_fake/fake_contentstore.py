@@ -9,6 +9,7 @@ same for both.
 
 
 import json
+import weakref
 from urlparse import urlparse, parse_qs
 from random import randint
 
@@ -66,7 +67,8 @@ class FakeEndpoint(object):
     FakeEndpoint base class
     """
 
-    def __init__(self, endpoint_data={}):
+    def __init__(self, parent, endpoint_data={}):
+        self.parent = weakref.ref(parent)
         self.endpoint_data = endpoint_data
         self.required_fields = None
         self.unique_fields = None
@@ -121,7 +123,7 @@ class FakeEndpoint(object):
         self._check_fields_unique(self.endpoint_data)
         return newobject
 
-    def get_object(self, object_key):
+    def get_object(self, object_key, sub_request=None):
         existingobject = self.endpoint_data.get(object_key)
         if existingobject is None:
             raise FakeObjectError(
@@ -154,7 +156,7 @@ class FakeEndpoint(object):
         self.endpoint_data.pop(object_key)
         return existingobject
 
-    def request(self, request, object_key, query):
+    def request(self, request, object_key, query, sub_request):
         if request.method == "POST":
             if object_key is None or object_key is "":
                 if request.headers["Content-Type"] == "application/json":
@@ -168,7 +170,7 @@ class FakeEndpoint(object):
             if object_key is None or object_key is "":
                 return (200, self.get_all(query))
             else:
-                return (200, self.get_object(object_key))
+                return (200, self.get_object(object_key, sub_request))
         elif request.method == "PUT":
             # NOTE: This is an incorrect use of the PUT method, but
             # it's what we have for now.
@@ -183,8 +185,8 @@ class FakeEndpoint(object):
 
 class FakeMessageSet(FakeEndpoint):
 
-    def __init__(self, endpoint_data={}):
-        super(FakeMessageSet, self).__init__()
+    def __init__(self, parent, endpoint_data={}):
+        super(FakeMessageSet, self).__init__(parent, endpoint_data)
         self.required_fields = [u"short_name", u"default_schedule"]
         self.unique_fields = [u"short_name"]
 
@@ -202,11 +204,24 @@ class FakeMessageSet(FakeEndpoint):
         data.update(fields)
         return data
 
+    def get_object(self, object_key, sub_request=None):
+        # Override to support messageset messages
+        existingobject = self.endpoint_data.get(object_key)
+        if existingobject is None:
+            raise FakeObjectError(
+                404, u"Object %r not found." % (object_key,))
+        if sub_request is not None:
+            # get messages - assumes all messages in fake are for current set
+            messages = sorted(self.parent().messages.endpoint_data.values(),
+                              key=lambda k: k['sequence_number'])
+            existingobject["messages"] = messages
+        return existingobject
+
 
 class FakeSchedule(FakeEndpoint):
 
-    def __init__(self, endpoint_data={}):
-        super(FakeSchedule, self).__init__()
+    def __init__(self, parent, endpoint_data={}):
+        super(FakeSchedule, self).__init__(parent, endpoint_data)
         self.required_fields = [u"minute", u"hour", u"day_of_week",
                                 u"day_of_month", u"month_of_year"]
         self.unique_fields = []
@@ -229,8 +244,8 @@ class FakeSchedule(FakeEndpoint):
 
 class FakeMessage(FakeEndpoint):
 
-    def __init__(self, endpoint_data={}):
-        super(FakeMessage, self).__init__()
+    def __init__(self, parent, endpoint_data={}):
+        super(FakeMessage, self).__init__(parent, endpoint_data)
         self.required_fields = [u"messageset", u"sequence_number",
                                 u"lang"]
         self.unique_fields = []
@@ -253,8 +268,8 @@ class FakeMessage(FakeEndpoint):
 
 class FakeBinaryContent(FakeEndpoint):
 
-    def __init__(self, endpoint_data={}):
-        super(FakeBinaryContent, self).__init__()
+    def __init__(self, parent, endpoint_data={}):
+        super(FakeBinaryContent, self).__init__(parent, endpoint_data)
         self.required_fields = [u"content"]
         self.unique_fields = []
 
@@ -280,10 +295,10 @@ class FakeContentStoreApi(object):
                  schedule_data={}, message_data={}, binary_content_data={}):
         self.url_path_prefix = url_path_prefix
         self.auth_token = auth_token
-        self.messagesets = FakeMessageSet(messageset_data)
-        self.schedules = FakeSchedule(schedule_data)
-        self.messages = FakeMessage(message_data)
-        self.binary_contents = FakeBinaryContent(binary_content_data)
+        self.messagesets = FakeMessageSet(self, messageset_data)
+        self.schedules = FakeSchedule(self, schedule_data)
+        self.messages = FakeMessage(self, message_data)
+        self.binary_contents = FakeBinaryContent(self, binary_content_data)
 
     make_messageset_dict = staticmethod(FakeMessageSet.make_dict)
     make_schedule_dict = staticmethod(FakeSchedule.make_dict)
@@ -296,15 +311,19 @@ class FakeContentStoreApi(object):
         if not self.check_auth(request):
             return self.build_response("", 403)
         url = urlparse(request.path)
-        request.path = url.path
-        request_type = request.path.replace(
-            self.url_path_prefix, '').lstrip('/')
-        request_type = request_type[:request_type.find('/')]
-        prefix = "/".join([self.url_path_prefix.rstrip("/"), request_type])
-        key = request.path.replace(prefix, "").strip("/")
+        request.path = url.path.strip("/").replace(self.url_path_prefix, '')
+        parts = request.path.split("/")
+        request_type, key, sub_request = None, None, None
+        if len(parts) >= 1:
+            request_type = parts[0]
+        if len(parts) >= 2:
+            key = parts[1]
+        if len(parts) >= 3:
+            sub_request = parts[2]
+
         try:
             key = int(key)
-        except ValueError as err:
+        except (ValueError, TypeError) as err:
             pass  # not a pk
 
         handler = {
@@ -319,8 +338,9 @@ class FakeContentStoreApi(object):
 
         try:
             query_string = parse_qs(url.query.decode('utf8'))
-            result = handler.request(request, key, query_string)
-            return self.build_response(result[1], code=result[0])
+            result = handler.request(request, key, query_string, sub_request)
+            return self.build_response(result[1], code=result[0],
+                                       headers=request.headers)
         except FakeObjectError as err:
             return self.build_response(err.data, err.code)
 

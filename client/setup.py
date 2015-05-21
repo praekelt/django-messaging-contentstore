@@ -1,16 +1,17 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
-    name="fake-django-messaging-contentstore",
-    version="0.1.2",
+    name="messaging_contentstore",
+    version="0.1.0",
     url='http://github.com/praekelt/django-messaging-contentstore',
-    license='BSD',
-    description="A verified fake implementation of \
-                django-messaging-contentstore for testing.",
+    license='None',
+    description="A client library for the Messaging Content store HTTP \
+                Services APIs",
     long_description=open('README.rst', 'r').read(),
     author='Praekelt Foundation',
     author_email='dev@praekeltfoundation.org',
-    py_modules=[],
+    packages=find_packages(),
+    include_package_data=True,
     install_requires=[],
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -19,6 +20,6 @@ setup(
         'Operating System :: POSIX',
         'Programming Language :: Python',
         'Topic :: Software Development :: Libraries :: Python Modules',
-        'Topic :: Internet :: WWW/HTTP',
+        'Topic :: System :: Networking',
     ],
 )

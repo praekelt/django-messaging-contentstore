@@ -167,6 +167,21 @@ class ContentStoreApiTestMixin(object):
         d = self.get_message(message_id)
         self.assertEqual(d["text_content"], "Message one updated")
 
+    def test_get_message_text(self):
+        schedule = self.make_schedule()
+        messageset = self.make_messageset(default_schedule=schedule.id,
+                                          short_name="Full Set")
+        message = self.make_message(messageset)
+        message_id = message.id
+        response = self.client.get('/message/%s/' % message_id,
+                                   content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        content = json.loads(response.content)
+        print response.content
+        self.assertEqual(content["text_content"], "Testing 1 2 3")
+        # self.assertEqual(True, False)
+
     def tests_delete_message_text(self):
         schedule = self.make_schedule()
         messageset = self.make_messageset(default_schedule=schedule.id,
@@ -179,3 +194,30 @@ class ContentStoreApiTestMixin(object):
 
         check = self.get_messages()
         self.assertEqual(len(check), 0)
+
+    def test_get_messageset_messages_content(self):
+        schedule = self.make_schedule()
+        messageset = self.make_messageset(default_schedule=schedule.id,
+                                          short_name="Three Message Set")
+        message2 = self.make_message(messageset=messageset,
+                                     text_content="Message two",
+                                     sequence_number=2)
+        message1 = self.make_message(messageset=messageset,
+                                     sequence_number=1,
+                                     text_content="Message one")
+        message3 = self.make_message(messageset=messageset,
+                                     sequence_number=3,
+                                     text_content="Message three")
+
+        response = self.client.get('/messageset/%s/messages' % messageset.id,
+                                   content_type='application/json')
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content["short_name"], "Three Message Set")
+        self.assertEqual(len(content["messages"]), 3)
+        messages = content["messages"]  # They should be sorted by seq num now
+        self.assertEqual(messages[0]["binary_content"], None)
+        self.assertEqual(messages[0]["text_content"], "Message one")
+        self.assertEqual(messages[0]["id"], message1.id)
+        self.assertEqual(messages[1]["id"], message2.id)
+        self.assertEqual(messages[2]["id"], message3.id)
