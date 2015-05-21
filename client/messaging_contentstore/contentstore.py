@@ -36,121 +36,81 @@ class ContentStoreApiClient(object):
         session.headers.update(self.headers)
         self.session = session
 
-    def get_messagesets(self, params=None):
-        url = '%s/messageset/' % (self.api_url.rstrip('/'),)
-        result = self.session.get(url, params=params)
+    def call(self, endpoint, method, obj=None, params=None, data=None):
+        if obj is None:
+            url = '%s/%s' % (self.api_url.rstrip('/'), endpoint)
+        else:
+            url = '%s/%s/%s' % (self.api_url.rstrip('/'), endpoint, obj)
+        result = {
+            'get': self.session.get,
+            'post': self.session.post,
+            'put': self.session.post,
+            'delete': self.session.delete,
+        }.get(method, None)(url, params=params, data=json.dumps(data))
         result.raise_for_status()
         return result.json()
+
+    def get_messagesets(self, params=None):
+        return self.call('messageset', 'get', params=params)
 
     def get_messageset(self, messageset_id):
-        url = '%s/messageset/%s/' % (self.api_url.rstrip('/'), messageset_id)
-        result = self.session.get(url)
-        result.raise_for_status()
-        return result.json()
+        return self.call('messageset', 'get', obj=messageset_id)
 
     def get_messageset_messages(self, messageset_id):
-        url = '%s/messageset/%s/messages' % (self.api_url.rstrip('/'),
-                                             messageset_id)
-        result = self.session.get(url)
-        result.raise_for_status()
-        return result.json()
+        return self.call('messageset', 'get',
+                         obj='%s/messages' % messageset_id)
 
     def create_messageset(self, messageset):
-        url = '%s/messageset/' % (self.api_url.rstrip('/'),)
-        result = self.session.post(url, data=json.dumps(messageset))
-        result.raise_for_status()
-        return result.json()
+        return self.call('messageset', 'post', data=messageset)
 
     def update_messageset(self, messageset_id, messageset):
-        url = '%s/messageset/%s/' % (self.api_url.rstrip('/'), messageset_id)
-        result = self.session.put(url, data=json.dumps(messageset))
-        result.raise_for_status()
-        return result.json()
+        return self.call('messageset', 'put', obj=messageset_id,
+                         data=messageset)
 
     def delete_messageset(self, messageset_id):
-        url = '%s/messageset/%s/' % (self.api_url.rstrip('/'), messageset_id)
-        result = self.session.delete(url)
-        result.raise_for_status()
-        return result.json()
+        return self.call('messageset', 'delete', obj=messageset_id)
 
     def get_messages(self, params=None):
-        url = '%s/message/' % (self.api_url.rstrip('/'),)
-        result = self.session.get(url, params=params)
-        result.raise_for_status()
-        return result.json()
+        return self.call('message', 'get', params=params)
 
     def get_message(self, message_id):
-        url = '%s/message/%s/' % (self.api_url.rstrip('/'), message_id)
-        result = self.session.get(url)
-        result.raise_for_status()
-        return result.json()
+        return self.call('message', 'get', obj=message_id)
 
     def get_message_content(self, message_id):
-        url = '%s/message/%s/content' % (self.api_url.rstrip('/'), message_id)
-        result = self.session.get(url)
-        result.raise_for_status()
-        return result.json()
+        return self.call('message', 'get',
+                         obj='%s/messages' % message_id)
 
     def create_message(self, message):
-        url = '%s/message/' % (self.api_url.rstrip('/'),)
-        result = self.session.post(url, data=json.dumps(message))
-        result.raise_for_status()
-        return result.json()
+        return self.call('message', 'post', data=message)
 
     def update_message(self, message_id, message):
-        url = '%s/message/%s/' % (self.api_url.rstrip('/'), message_id)
-        result = self.session.put(url, data=json.dumps(message))
-        result.raise_for_status()
-        return result.json()
+        return self.call('message', 'put', obj=message_id,
+                         data=message)
 
     def delete_message(self, message_id):
-        url = '%s/message/%s/' % (self.api_url.rstrip('/'), message_id)
-        result = self.session.delete(url)
-        result.raise_for_status()
-        return result.json()
+        return self.call('message', 'delete', obj=message_id)
 
     def get_schedules(self, params=None):
-        url = '%s/schedule/' % (self.api_url.rstrip('/'),)
-        result = self.session.get(url, params=params)
-        result.raise_for_status()
-        return result.json()
+        return self.call('schedule', 'get', params=params)
 
     def get_schedule(self, schedule_id):
-        url = '%s/schedule/%s/' % (self.api_url.rstrip('/'), schedule_id)
-        result = self.session.get(url)
-        result.raise_for_status()
-        return result.json()
+        return self.call('schedule', 'get', obj=schedule_id)
 
     def create_schedule(self, schedule):
-        url = '%s/schedule/' % (self.api_url.rstrip('/'),)
-        result = self.session.post(url, data=json.dumps(schedule))
-        result.raise_for_status()
-        return result.json()
+        return self.call('schedule', 'post', data=schedule)
 
     def update_schedule(self, schedule_id, schedule):
-        url = '%s/schedule/%s/' % (self.api_url.rstrip('/'), schedule_id)
-        result = self.session.put(url, data=json.dumps(schedule))
-        result.raise_for_status()
-        return result.json()
+        return self.call('schedule', 'put', obj=schedule_id,
+                         data=schedule)
 
     def delete_schedule(self, schedule_id):
-        url = '%s/schedule/%s/' % (self.api_url.rstrip('/'), schedule_id)
-        result = self.session.delete(url)
-        result.raise_for_status()
-        return result.json()
+        return self.call('schedule', 'delete', obj=schedule_id)
 
     def get_binarycontents(self, params=None):
-        url = '%s/binarycontent/' % (self.api_url.rstrip('/'),)
-        result = self.session.get(url, params=params)
-        result.raise_for_status()
-        return result.json()
+        return self.call('binarycontent', 'get', params=params)
 
     def get_binarycontent(self, binarycontent_id):
-        url = '%s/binarycontent/%s/' % (self.api_url.rstrip('/'),
-                                        binarycontent_id)
-        result = self.session.get(url)
-        result.raise_for_status()
-        return result.json()
+        return self.call('binarycontent', 'get', obj=binarycontent_id)
 
     def create_binarycontent(self, binarycontent):
         post_data = {
@@ -174,8 +134,4 @@ class ContentStoreApiClient(object):
         return result.json()
 
     def delete_binarycontent(self, binarycontent_id):
-        url = '%s/binarycontent/%s/' % (self.api_url.rstrip('/'),
-                                        binarycontent_id)
-        result = self.session.delete(url)
-        result.raise_for_status()
-        return result.json()
+        return self.call('binarycontent', 'delete', obj=binarycontent_id)
