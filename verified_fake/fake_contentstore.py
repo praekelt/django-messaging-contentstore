@@ -321,10 +321,6 @@ class FakeContentStoreApi(object):
         if len(parts) >= 3:
             sub_request = parts[2]
 
-        print request_type
-        print key
-        print sub_request
-
         try:
             key = int(key)
         except (ValueError, TypeError) as err:
