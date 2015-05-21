@@ -57,14 +57,9 @@ class TestContentStoreApiClient(TestCase):
             messageset_data=self.messageset_data,
             schedule_data=self.schedule_data, message_data=self.message_data,
             binary_content_data=self.binary_content_data)
-        self.contentstore_backend.messagesets.endpoint_data = {}
-        self.contentstore_backend.messages.endpoint_data = {}
-        self.contentstore_backend.schedules.endpoint_data = {}
-        self.contentstore_backend.binary_contents.endpoint_data = {}
         self.session = TestSession()
         adapter = FakeContentStoreApiAdapter(self.contentstore_backend)
         self.session.mount(self.API_URL, adapter)
-        # self.session = Session()
 
     def make_client(self, auth_token=AUTH_TOKEN):
         return ContentStoreApiClient(
