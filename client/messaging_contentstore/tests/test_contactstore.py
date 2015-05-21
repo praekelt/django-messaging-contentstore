@@ -28,13 +28,11 @@ class FakeContentStoreApiAdapter(HTTPAdapter):
 
     def send(self, request, stream=False, timeout=None,
              verify=True, cert=None, proxies=None):
-        # print request.path_url
         req = Request(
             request.method, request.path_url, request.body, request.headers)
         resp = self.contentstore_api.handle_request(req)
         response = Resp(resp.body, resp.code, resp.headers)
         r = self.build_response(request, response)
-        # print r.status_code
         return r
 
 
@@ -155,6 +153,18 @@ class TestContentStoreApiClient(TestCase):
         self.assertEqual(
             messageset["default_schedule"], new_messageset["default_schedule"])
 
+    def test_delete_messageset(self):
+        new_messageset = self.make_existing_messageset({
+            u"short_name": u"Full Set",
+            u"notes": u"A full set of messages that will go.",
+            u"default_schedule": 1
+        })
+        [messageset] = list(self.client.get_messagesets())
+        self.assertEqual(messageset, new_messageset)
+        self.client.delete_messageset(new_messageset["id"])
+        messageset = list(self.client.get_messagesets())
+        self.assertEqual(messageset, [])
+
     def test_get_message(self):
         expected_message = self.make_existing_message({
             "messageset": 1,
@@ -164,6 +174,34 @@ class TestContentStoreApiClient(TestCase):
         })
         [message] = list(self.client.get_messages())
         self.assertEqual(message, expected_message)
+
+    def test_get_messageset_messages(self):
+        new_messageset = self.client.create_messageset({
+            u"short_name": u"Full Set1",
+            u"notes": u"A full and new set of messages.",
+            u"default_schedule": 1
+        })
+        messageset_id = new_messageset["id"]
+        expected_message = self.make_existing_message({
+            "messageset": messageset_id,
+            "sequence_number": 2,
+            "lang": "afr_ZA",
+            "text_content": "Message two"
+        })
+        expected_message2 = self.make_existing_message({
+            "messageset": messageset_id,
+            "sequence_number": 1,
+            "lang": "afr_ZA",
+            "text_content": "Message one"
+        })
+        messageset_messages = self.client.get_messageset_messages(
+            messageset_id)
+        self.assertEqual(len(messageset_messages["messages"]), 2)
+        # should be sorted by sequence_number
+        self.assertEqual(messageset_messages["messages"][0]["id"],
+                         expected_message2["id"])
+        self.assertEqual(messageset_messages["messages"][1]["id"],
+                         expected_message["id"])
 
     def test_create_message(self):
         new_message = self.client.create_message({
