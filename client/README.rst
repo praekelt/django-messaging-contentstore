@@ -7,6 +7,5 @@ Issues can be filed in the GitHub issue tracker. Please don't use the issue
 tracker for general support queries.
 
 Release Notes
------------------------
-
-0.1.0 - Initial release
+------------------------------
+0.1.3 - 2015-05-21 - Initial release

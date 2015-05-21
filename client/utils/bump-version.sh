@@ -17,4 +17,4 @@ function inplace_sed {
 }
 
 inplace_sed "s/\(version[ ]*=[ ]*[\"']\)\(.*\)\([\"'].*\)/\1${VER}\3/" setup.py
-inplace_sed "s/^\(__version__[ ]*=[ ]*[\"']\)\(.*\)\([\"'].*\)/\1${VER}\3/" wcl_services/__init__.py
+inplace_sed "s/^\(__version__[ ]*=[ ]*[\"']\)\(.*\)\([\"'].*\)/\1${VER}\3/" messaging_contentstore/__init__.py

@@ -46,4 +46,4 @@ be added to ``settings.py`` to configure this app::
 
 Release Notes
 ------------------------------
-0.1.0 - YYYY-MM-DD - Initial release
+0.1.3 - 2015-05-21 - Initial release
