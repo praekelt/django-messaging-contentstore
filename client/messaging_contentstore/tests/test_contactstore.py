@@ -67,20 +67,17 @@ class TestContentStoreApiClient(TestCase):
 
     def make_existing_messageset(self, messageset_data):
         existing_messageset = make_messageset_dict(messageset_data)
-        self.contentstore_backend.messagesets.endpoint_data[
-            existing_messageset[u"id"]] = existing_messageset
+        self.messageset_data[existing_messageset[u"id"]] = existing_messageset
         return existing_messageset
 
     def make_existing_message(self, message_data):
         existing_message = make_message_dict(message_data)
-        self.contentstore_backend.messages.endpoint_data[
-            existing_message[u"id"]] = existing_message
+        self.message_data[existing_message[u"id"]] = existing_message
         return existing_message
 
     def make_existing_schedule(self, schedule_data):
         existing_schedule = make_schedule_dict(schedule_data)
-        self.contentstore_backend.schedules.endpoint_data[
-            existing_schedule[u"id"]] = existing_schedule
+        self.schedule_data[existing_schedule[u"id"]] = existing_schedule
         return existing_schedule
 
     def assert_messageset_status(self, messageset_id, exists=True):
