@@ -15,3 +15,11 @@ install:
 script:
   - "py.test --ds=testsettings contentstore/tests/tests_server.py --cov=contentstore"
   - "flake8 contentstore/"
+deploy:
+  provider: pypi
+  user: Praekelt
+  password:
+    secure: "hyTE4zCmNlAT2nnKVijBRvkO/DssCHc1HcaGzPsrfYQ+qgoTmB89CyLjr4FtAh7JVB7jxEvvKSlQGcJLTcJxTb3UCll4B/hVrBjlB1NmOb2FHmVPgmrN1QSG9Tcx3nRJBfXkeCI5FTZ0nBz3EInVUUrht20ID1qqnhnWeBkvKLw="
+  on:
+    tags: true
+    all_branches: true
