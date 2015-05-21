@@ -233,10 +233,6 @@ class TestFakeContentStore(TestCase, ContentStoreApiTestMixin):
         self.req_class = Request
         self.api_class = FakeContentStoreApi
         self.api = self.api_class("", "token-1", {}, {}, {}, {})
-        self.api.messagesets.endpoint_data = {}
-        self.api.schedules.endpoint_data = {}
-        self.api.messages.endpoint_data = {}
-        self.api.binary_contents.endpoint_data = {}
         self.client = self.make_client()
 
     def make_client(self):
