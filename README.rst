@@ -1,7 +1,8 @@
 django-messaging-contentstore
 ================================
 
-A RESTful API for managing collections of messaging content
+A RESTful API for managing collections of messaging content. Comes with a
+client and a fake.
 
 
 ::
