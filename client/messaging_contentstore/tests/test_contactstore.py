@@ -60,6 +60,7 @@ class TestContentStoreApiClient(TestCase):
         self.session = TestSession()
         adapter = FakeContentStoreApiAdapter(self.contentstore_backend)
         self.session.mount(self.API_URL, adapter)
+        self.client = self.make_client()
 
     def make_client(self, auth_token=AUTH_TOKEN):
         return ContentStoreApiClient(
@@ -137,18 +138,16 @@ class TestContentStoreApiClient(TestCase):
             u"notes": u"A full set of messages.",
             u"default_schedule": 1
         })
-        contentstore = self.make_client()
-        [messageset] = list(contentstore.get_messagesets())
+        [messageset] = list(self.client.get_messagesets())
         self.assertEqual(messageset, expected_messageset)
 
     def test_create_messageset(self):
-        contentstore = self.make_client()
-        new_messageset = contentstore.create_messageset({
+        new_messageset = self.client.create_messageset({
             u"short_name": u"Full Set1",
             u"notes": u"A full and new set of messages.",
             u"default_schedule": 1
         })
-        [messageset] = list(contentstore.get_messagesets())
+        [messageset] = list(self.client.get_messagesets())
         self.assertEqual(
             messageset["short_name"], new_messageset["short_name"])
         self.assertEqual(
@@ -163,19 +162,17 @@ class TestContentStoreApiClient(TestCase):
             "lang": "afr_ZA",
             "text_content": "Message two"
         })
-        contentstore = self.make_client()
-        [message] = list(contentstore.get_messages())
+        [message] = list(self.client.get_messages())
         self.assertEqual(message, expected_message)
 
     def test_create_message(self):
-        contentstore = self.make_client()
-        new_message = contentstore.create_message({
+        new_message = self.client.create_message({
             "messageset": 1,
             "sequence_number": 2,
             "lang": "afr_ZA",
             "text_content": "Message two"
         })
-        [message] = list(contentstore.get_messages())
+        [message] = list(self.client.get_messages())
         self.assertEqual(message["text_content"],
                          new_message["text_content"])
         self.assertEqual(message["sequence_number"],
@@ -193,20 +190,18 @@ class TestContentStoreApiClient(TestCase):
             "day_of_month": "4",
             "month_of_year": "5",
         })
-        contentstore = self.make_client()
-        [schedule] = list(contentstore.get_schedules())
+        [schedule] = list(self.client.get_schedules())
         self.assertEqual(schedule, expected_schedule)
 
     def test_create_schedule(self):
-        contentstore = self.make_client()
-        new_schedule = contentstore.create_schedule({
+        new_schedule = self.client.create_schedule({
             "minute": "1",
             "hour": "2",
             "day_of_week": "3",
             "day_of_month": "4",
             "month_of_year": "5",
         })
-        [schedule] = list(contentstore.get_schedules())
+        [schedule] = list(self.client.get_schedules())
         self.assertEqual(schedule["minute"],
                          new_schedule["minute"])
         self.assertEqual(schedule["hour"],
