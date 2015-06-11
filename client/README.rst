@@ -8,4 +8,5 @@ tracker for general support queries.
 
 Release Notes
 ------------------------------
+0.1.4 - 2015-06-11 - Python 3 compat imports
 0.1.3 - 2015-05-21 - Initial release

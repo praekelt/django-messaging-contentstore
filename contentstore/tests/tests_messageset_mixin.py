@@ -178,9 +178,7 @@ class ContentStoreApiTestMixin(object):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         content = json.loads(response.content)
-        print response.content
         self.assertEqual(content["text_content"], "Testing 1 2 3")
-        # self.assertEqual(True, False)
 
     def tests_delete_message_text(self):
         schedule = self.make_schedule()
