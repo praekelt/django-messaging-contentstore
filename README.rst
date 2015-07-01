@@ -47,7 +47,7 @@ be added to ``settings.py`` to configure this app::
 
 Release Notes
 ------------------------------
-0.1.7 - 2015-07-02 - Add filter for lang, fix broken message content URL in client
+0.1.7 - 2015-07-02 - Add filter for lang, fix broken message content URL in client (bump)
 0.1.6 - 2015-07-01 - Publish package with missing init
 0.1.5 - 2015-07-01 - Publish package with client and verified fake
 0.1.4 - 2015-06-11 - Python 3 compat imports
