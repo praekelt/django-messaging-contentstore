@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="messaging_contentstore",
-    version="0.1.4",
+    version="0.1.7",
     url='http://github.com/praekelt/django-messaging-contentstore',
     license='None',
     description="A client library for the Messaging Content store HTTP \
