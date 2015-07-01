@@ -175,6 +175,16 @@ class TestContentStoreApiClient(TestCase):
         [message] = list(self.client.get_messages())
         self.assertEqual(message, expected_message)
 
+    def test_get_message_content(self):
+        expected_message = self.make_existing_message({
+            "messageset": 1,
+            "sequence_number": 2,
+            "lang": "afr_ZA",
+            "text_content": "Message two"
+        })
+        message = self.client.get_message_content(expected_message[u"id"])
+        self.assertEqual(message, expected_message)
+
     def test_get_messageset_messages(self):
         new_messageset = self.client.create_messageset({
             u"short_name": u"Full Set1",
