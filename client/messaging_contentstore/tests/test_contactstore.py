@@ -10,7 +10,7 @@ from requests_testadapter import TestSession, Resp, TestAdapter
 
 from verified_fake.fake_contentstore import Request, FakeContentStoreApi
 
-from messaging_contentstore.contentstore import ContentStoreApiClient
+from client.messaging_contentstore.contentstore import ContentStoreApiClient
 
 
 class FakeContentStoreApiAdapter(HTTPAdapter):
