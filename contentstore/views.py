@@ -34,7 +34,7 @@ class MessageViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
-    filter_fields = ('messageset', 'sequence_number', )
+    filter_fields = ('messageset', 'sequence_number', 'lang', )
 
 
 class BinaryContentViewSet(ModelViewSet):

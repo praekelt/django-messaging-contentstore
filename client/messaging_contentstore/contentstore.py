@@ -78,7 +78,7 @@ class ContentStoreApiClient(object):
 
     def get_message_content(self, message_id):
         return self.call('message', 'get',
-                         obj='%s/messages' % message_id)
+                         obj='%s/content' % message_id)
 
     def create_message(self, message):
         return self.call('message', 'post', data=message)
