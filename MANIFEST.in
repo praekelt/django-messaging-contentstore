@@ -6,6 +6,8 @@ include setup.py
 recursive-include contentstore/fixtures *
 recursive-include contentstore/migrations *
 recursive-include contentstore/templates *
+recursive-include client *
+recursive-include verified_fake *
 
 # Prune stray bytecode files.
 global-exclude *.pyc
